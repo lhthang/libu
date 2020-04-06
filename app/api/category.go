@@ -67,6 +67,14 @@ func getCategoryById(categoryEntity repository.ICategory) func(ctx *gin.Context)
 	}
 }
 
+// CreateCategory godoc
+// @Summary Create category
+// @Description Create category
+// @Accept  json
+// @Produce  json
+// @Param category body form.CategoryForm true "Category"
+// @Success 200 {object} model.Category
+// @Router /categories [post]
 func createCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
@@ -85,6 +93,15 @@ func createCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 	}
 }
 
+// UpdateCategory godoc
+// @Summary Update category
+// @Description Update category
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Category ID"
+// @Param category body form.CategoryForm true "CategoryForm"
+// @Success 200 {object} model.Category
+// @Router /categories/{id} [put]
 func updateCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id := ctx.Param("id")
@@ -103,6 +120,14 @@ func updateCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 	}
 }
 
+// DeleteCategory godoc
+// @Summary Delete category
+// @Description Delete category
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Category ID"
+// @Success 200 {object} model.Category
+// @Router /categories/{id} [delete]
 func deleteCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
