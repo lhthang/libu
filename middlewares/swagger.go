@@ -8,8 +8,8 @@ import (
 )
 
 func NewSwagger() gin.HandlerFunc {
-	docs.SwaggerInfo.Title = "Swagger Example API"
-	docs.SwaggerInfo.Description = "This is a sample Swagger"
+	docs.SwaggerInfo.Title = "UIT Library API"
+	docs.SwaggerInfo.Description = "Swagger for UIT Library API"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.Host = "localhost:8585"
 	docs.SwaggerInfo.BasePath = "/api/v1"
