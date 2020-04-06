@@ -5,14 +5,14 @@ import (
 )
 
 
-// @title Swagger Example API
+// @title UIT-Libray API
 // @version 1.0
-// @description This is a sample swagger
+// @description This is a backend for uit-library
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
 // @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
+// @contact.email lhthang.1998@gmail.com
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html

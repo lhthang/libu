@@ -1,13 +1,13 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is a sample swagger",
-        "title": "Swagger Example API",
+        "description": "This is a backend for uit-library",
+        "title": "UIT-Libray API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
             "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
+            "email": "lhthang.1998@gmail.com"
         },
         "license": {
             "name": "Apache 2.0",
