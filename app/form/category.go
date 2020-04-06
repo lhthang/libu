@@ -1,5 +1,6 @@
 package form
 
-type ToDoForm struct {
+type CategoryForm struct {
+	Id   string `json:"id"`
 	Name string `json:"name" binding:"required"`
 }

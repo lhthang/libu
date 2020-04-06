@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"libu/app/form"
 	"libu/app/repository"
-	"libu/db"
+	"libu/my_db"
 	"libu/middlewares"
 	"libu/utils/bcrypt"
 	"libu/utils/constant"
@@ -12,13 +12,13 @@ import (
 	"net/http"
 )
 
-func ApplyUserAPI(app *gin.RouterGroup, resource *db.Resource) {
+func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	userEntity := repository.NewUserEntity(resource)
 	authRoute := app.Group("")
 	authRoute.POST("/login", login(userEntity))
 	authRoute.POST("/sign-up", signUp(userEntity))
 
-	userRoute := app.Group("/user")
+	userRoute := app.Group("/users")
 	userRoute.GET("/get-all", getAllUSer(userEntity))
 	userRoute.Use(middlewares.RequireAuthenticated())               // when need authentication
 	userRoute.Use(middlewares.RequireAuthorization(constant.ADMIN)) // when need authorization

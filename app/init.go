@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"libu/app/api"
-	"libu/db"
 	"libu/middlewares"
+	"libu/my_db"
 	"os"
 )
 
@@ -15,7 +15,7 @@ type Routes struct {
 func (app Routes) StartGin() {
 	r := gin.Default()
 	publicRoute := r.Group("/api/v1")
-	resource, err := db.InitResource()
+	resource, err := my_db.InitResource()
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -29,7 +29,7 @@ func (app Routes) StartGin() {
 		context.File("./template/route_not_found.html")
 	})
 
-	api.ApplyToDoAPI(publicRoute, resource)
+	api.ApplyCategoryAPI(publicRoute, resource)
 	api.ApplyUserAPI(publicRoute, resource)
 	r.Run(":"+os.Getenv("PORT"))
 }

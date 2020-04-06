@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"libu/app/form"
 	"libu/app/model"
-	"libu/db"
+	"libu/my_db"
 	"libu/utils/bcrypt"
 	"libu/utils/constant"
 	"net/http"
@@ -17,7 +17,7 @@ import (
 var UserEntity IUser
 
 type userEntity struct {
-	resource *db.Resource
+	resource *my_db.Resource
 	repo     *mongo.Collection
 }
 
@@ -28,7 +28,7 @@ type IUser interface {
 }
 
 //func NewToDoEntity
-func NewUserEntity(resource *db.Resource) IUser {
+func NewUserEntity(resource *my_db.Resource) IUser {
 	userRepo := resource.DB.Collection("user")
 	UserEntity = &userEntity{resource: resource, repo: userRepo}
 	return UserEntity
