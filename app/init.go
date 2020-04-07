@@ -34,5 +34,6 @@ func (app Routes) StartGin() {
 
 	api.ApplyCategoryAPI(publicRoute, resource)
 	api.ApplyUserAPI(publicRoute, resource)
+	api.ApplyReviewAPI(publicRoute,resource)
 	r.Run(":"+os.Getenv("PORT"))
 }

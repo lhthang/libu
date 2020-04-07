@@ -9,11 +9,39 @@ definitions:
     required:
     - name
     type: object
+  form.ReviewForm:
+    properties:
+      bookId:
+        type: string
+      comment:
+        type: string
+      id:
+        type: string
+      rating:
+        type: integer
+      username:
+        type: string
+    type: object
   model.Category:
     properties:
       id:
         type: string
       name:
+        type: string
+    type: object
+  model.Review:
+    properties:
+      bookId:
+        type: string
+      comment:
+        type: string
+      createAt:
+        type: string
+      id:
+        type: string
+      rating:
+        type: integer
+      username:
         type: string
     type: object
   model.User:
@@ -140,6 +168,26 @@ paths:
           schema:
             $ref: '#/definitions/model.Category'
       summary: Update category
+  /reviews:
+    post:
+      consumes:
+      - application/json
+      description: Create review
+      parameters:
+      - description: Review
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/form.ReviewForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Review'
+      summary: Create review
   /user:
     get:
       consumes:

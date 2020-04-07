@@ -3,7 +3,6 @@ package middlewares
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -28,7 +27,6 @@ func RequireAuthorization(auths ...string)  gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token:=c.GetHeader("Authorization")
 		if token ==""{
-			logrus.Print("abc")
 			c.Abort()
 			c.Writer.WriteHeader(http.StatusUnauthorized)
 			return
