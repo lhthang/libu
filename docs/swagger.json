@@ -167,6 +167,11 @@
         },
         "/reviews": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create review",
                 "consumes": [
                     "application/json"
@@ -176,6 +181,49 @@
                 ],
                 "summary": "Create review",
                 "parameters": [
+                    {
+                        "description": "Review",
+                        "name": "review",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/form.ReviewForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Review"
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update review",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Update review",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ReviewID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Review",
                         "name": "review",
@@ -242,6 +290,9 @@
         },
         "form.ReviewForm": {
             "type": "object",
+            "required": [
+                "bookId"
+            ],
             "properties": {
                 "bookId": {
                     "type": "string"
@@ -280,14 +331,14 @@
                 "comment": {
                     "type": "string"
                 },
-                "createAt": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
                 "rating": {
                     "type": "integer"
+                },
+                "updateAt": {
+                    "type": "string"
                 },
                 "username": {
                     "type": "string"
