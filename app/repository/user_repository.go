@@ -2,10 +2,12 @@ package repository
 
 import (
 	"errors"
+	"github.com/jinzhu/copier"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"libu/app/form"
 	"libu/app/model"
 	"libu/my_db"
@@ -25,6 +27,7 @@ type IUser interface {
 	GetAll() ([]model.User, int, error)
 	GetOneByUsername(username string) (*model.User, int, error)
 	CreateOne(userForm form.User) (*model.User, int, error)
+	UpdateUser(username string, userForm form.UpdateInformation) (model.User, int, error)
 }
 
 //func NewToDoEntity
@@ -77,10 +80,12 @@ func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error
 	defer cancel()
 
 	user := model.User{
-		Id:       primitive.NewObjectID(),
-		Username: userForm.Username,
-		Password: bcrypt.HashPassword(userForm.Password),
-		Roles:    []string{constant.ADMIN, constant.USER},
+		Id:          primitive.NewObjectID(),
+		Username:    userForm.Username,
+		FullName:    userForm.FullName,
+		Password:    bcrypt.HashPassword(userForm.Password),
+		Roles:       []string{constant.ADMIN, constant.USER},
+		FavoriteIds: []string{},
 	}
 	found, _, _ := entity.GetOneByUsername(user.Username)
 	if found != nil {
@@ -94,4 +99,45 @@ func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error
 	}
 
 	return &user, http.StatusOK, nil
+}
+
+func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInformation) (model.User, int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+
+	user, _, err := entity.GetOneByUsername(username)
+
+	if err != nil || user == nil {
+		return *user, http.StatusNotFound, errors.New("not found")
+	}
+
+	password := user.Password
+	newPassword := userForm.Password
+	isUpdatePw := false
+	if userForm.Password != "" && userForm.OldPassword != "" {
+		isUpdatePw = true
+	}
+	if isUpdatePw {
+		if err = bcrypt.ComparePasswordAndHashedPassword(userForm.OldPassword, user.Password); err != nil {
+			return *user, http.StatusBadRequest, errors.New("old password is wrong")
+		}
+
+		userForm.Password = bcrypt.HashPassword(newPassword)
+		err = copier.Copy(user, userForm)
+		if userForm.Password == "" {
+			user.Password = password
+		}
+	}else{
+		err = copier.Copy(user, userForm)
+		user.Password=password
+	}
+
+	isReturnNewDoc := options.After
+	opts := &options.FindOneAndUpdateOptions{
+		ReturnDocument: &isReturnNewDoc,
+	}
+
+	err = entity.repo.FindOneAndUpdate(ctx,bson.M{"username":username},bson.M{"$set":user},opts).Decode(&user)
+
+	return *user, http.StatusOK, nil
 }

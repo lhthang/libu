@@ -4,11 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"libu/app/form"
 	"libu/app/repository"
-	"libu/my_db"
 	"libu/middlewares"
+	"libu/my_db"
 	"libu/utils/bcrypt"
 	"libu/utils/constant"
 	err2 "libu/utils/err"
+	"libu/utils/jwt"
 	"net/http"
 )
 
@@ -20,7 +21,10 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	userRoute := app.Group("/users")
 	userRoute.GET("/get-all", getAllUSer(userEntity))
-	userRoute.Use(middlewares.RequireAuthenticated())               // when need authentication
+	userRoute.Use(middlewares.RequireAuthenticated())
+	userRoute.PUT("/update/:username", updateUser(userEntity))
+
+	// when need authentication
 	userRoute.Use(middlewares.RequireAuthorization(constant.ADMIN)) // when need authorization
 	userRoute.GET("", getAllUSer(userEntity))
 }
@@ -28,7 +32,7 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 func login(userEntity repository.IUser) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
-		userRequest := form.User{}
+		userRequest := form.LoginUser{}
 		if err := ctx.Bind(&userRequest); err != nil {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 			return
@@ -36,7 +40,7 @@ func login(userEntity repository.IUser) func(ctx *gin.Context) {
 
 		user, code, _ := userEntity.GetOneByUsername(userRequest.Username)
 
-		if (user ==nil) || bcrypt.ComparePasswordAndHashedPassword(userRequest.Password,user.Password) !=nil {
+		if (user == nil) || bcrypt.ComparePasswordAndHashedPassword(userRequest.Password, user.Password) != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"err": "Wrong username or password"})
 			return
 		}
@@ -79,6 +83,40 @@ func getAllUSer(userEntity repository.IUser) func(ctx *gin.Context) {
 		list, code, err := userEntity.GetAll()
 		response := map[string]interface{}{
 			"users": list,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// UpdateUser godoc
+// @Summary Update user
+// @Description Update user
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param username path string true "Username"
+// @Param updateUser body form.UpdateInformation true "Update User"
+// @Success 200 {object} model.User
+// @Router /users/update/{username} [put]
+func updateUser(userEntity repository.IUser) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+
+		updateUserForm := form.UpdateInformation{}
+		if err := ctx.Bind(&updateUserForm); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+			return
+		}
+		username := ctx.Param("username")
+		userRequest := jwt.GetUsername(ctx)
+		if userRequest != username {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": "can not update this user"})
+			return
+		}
+
+		user, code, err := userEntity.UpdateUser(username, updateUserForm)
+		response := map[string]interface{}{
+			"users": user,
 			"error": err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)

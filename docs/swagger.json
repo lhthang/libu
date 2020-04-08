@@ -271,6 +271,49 @@
                     }
                 }
             }
+        },
+        "/users/update/{username}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update User",
+                        "name": "updateUser",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/form.UpdateInformation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -307,6 +350,23 @@
                     "type": "integer"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "form.UpdateInformation": {
+            "type": "object",
+            "required": [
+                "fullName"
+            ],
+            "properties": {
+                "fullName": {
+                    "type": "string"
+                },
+                "oldPassword": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
@@ -348,6 +408,15 @@
         "model.User": {
             "type": "object",
             "properties": {
+                "favoriteIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fullName": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },

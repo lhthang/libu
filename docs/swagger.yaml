@@ -24,6 +24,17 @@ definitions:
     required:
     - bookId
     type: object
+  form.UpdateInformation:
+    properties:
+      fullName:
+        type: string
+      oldPassword:
+        type: string
+      password:
+        type: string
+    required:
+    - fullName
+    type: object
   model.Category:
     properties:
       id:
@@ -48,6 +59,12 @@ definitions:
     type: object
   model.User:
     properties:
+      favoriteIds:
+        items:
+          type: string
+        type: array
+      fullName:
+        type: string
       id:
         type: string
       password:
@@ -236,6 +253,33 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get all user
+  /users/update/{username}:
+    put:
+      consumes:
+      - application/json
+      description: Update user
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      - description: Update User
+        in: body
+        name: updateUser
+        required: true
+        schema:
+          $ref: '#/definitions/form.UpdateInformation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user
 securityDefinitions:
   ApiKeyAuth:
     in: header
