@@ -35,6 +35,27 @@ definitions:
     required:
     - fullName
     type: object
+  model.Book:
+    properties:
+      authors:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      link:
+        type: string
+      publisher:
+        type: string
+      releaseAt:
+        type: string
+      title:
+        type: string
+    type: object
   model.Category:
     properties:
       id:
@@ -90,6 +111,21 @@ info:
   title: UIT-Libray API
   version: "1.0"
 paths:
+  /books:
+    get:
+      consumes:
+      - application/json
+      description: Get all books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Book'
+            type: array
+      summary: Get all books
   /categories:
     get:
       consumes:

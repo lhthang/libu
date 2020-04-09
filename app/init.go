@@ -24,7 +24,7 @@ func (app Routes) StartGin() {
 	r.Use(gin.Logger())
 	r.Use(middlewares.NewRecovery())
 	r.Use(middlewares.NewCors([]string{"*"}))
-	r.GET("swagger/*any",middlewares.NewSwagger())
+	r.GET("swagger/*any", middlewares.NewSwagger())
 
 	r.Static("/template", "./template")
 
@@ -33,7 +33,8 @@ func (app Routes) StartGin() {
 	})
 
 	api.ApplyCategoryAPI(publicRoute, resource)
+	api.ApplyBookAPI(publicRoute, resource)
 	api.ApplyUserAPI(publicRoute, resource)
-	api.ApplyReviewAPI(publicRoute,resource)
-	r.Run(":"+os.Getenv("PORT"))
+	api.ApplyReviewAPI(publicRoute, resource)
+	r.Run(":" + os.Getenv("PORT"))
 }
