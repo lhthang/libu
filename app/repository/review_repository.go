@@ -25,6 +25,7 @@ type IReview interface {
 	GetOneById(id string) (*model.Review, int, error)
 	Create(reviewForm form.ReviewForm) (model.Review, int, error)
 	Update(id, username string, reviewForm form.ReviewForm) (model.Review, int, error)
+	Delete(id, username string) (model.Review, int, error)
 }
 
 func NewReviewEntity(resource *my_db.Resource) IReview {
@@ -105,5 +106,31 @@ func (entity *reviewEntity) Update(id, username string, reviewForm form.ReviewFo
 	if err != nil {
 		return model.Review{}, getHTTPCode(err), err
 	}
+	return *review, http.StatusOK, nil
+}
+
+func (entity *reviewEntity) Delete(id, username string) (model.Review, int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return model.Review{}, getHTTPCode(err), err
+	}
+
+	review, _, err := entity.GetOneById(id)
+	if err != nil || review == nil {
+		return model.Review{}, http.StatusNotFound, err
+	}
+
+	if review.Username != username {
+		return model.Review{}, http.StatusBadRequest, errors.New("this is not your review")
+	}
+
+	err = entity.repo.FindOneAndDelete(ctx, bson.M{"_id": objID, "username": username}).Decode(&review)
+	if err != nil {
+		return model.Review{}, http.StatusBadRequest, err
+	}
+
 	return *review, http.StatusOK, nil
 }

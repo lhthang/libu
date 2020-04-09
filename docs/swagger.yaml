@@ -246,6 +246,28 @@ paths:
       - ApiKeyAuth: []
       summary: Create review
   /reviews/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete review by id
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Review'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Delete review by id
     put:
       consumes:
       - application/json
