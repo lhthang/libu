@@ -189,6 +189,24 @@ paths:
             $ref: '#/definitions/form.BookResponse'
       summary: Create book
   /books/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete book by id
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.BookResponse'
+      summary: Delete book by id
     get:
       consumes:
       - application/json

@@ -24,6 +24,7 @@ type IBook interface {
 	Search(keyword string) ([]form.BookResponse, int, error)
 	Create(bookForm form.BookForm) (form.BookResponse, int, error)
 	GetOneByID(id string) (form.BookResponse, int, error)
+	Delete(id string) (form.BookResponse, int, error)
 }
 
 func NewBookEntity(resource *my_db.Resource) IBook {
@@ -148,7 +149,7 @@ func (entity bookEntity) Search(keyword string) ([]form.BookResponse, int, error
 	author["authors"] = bson.M{"$regex": keyword, "$options": "i"}
 	publisher["publisher"] = bson.M{"$regex": keyword, "$options": "i"}
 	query := map[string]interface{}{}
-	query["$or"] = []interface{}{title, description, author,publisher}
+	query["$or"] = []interface{}{title, description, author, publisher}
 
 	cursor, err := entity.repo.Find(ctx, query)
 	if err != nil {
@@ -168,4 +169,23 @@ func (entity bookEntity) Search(keyword string) ([]form.BookResponse, int, error
 		})
 	}
 	return booksResp, http.StatusOK, nil
+}
+
+func (entity bookEntity) Delete(id string) (form.BookResponse, int, error) {
+	ctx, cancel := initContext()
+
+	defer cancel()
+
+	objID, _ := primitive.ObjectIDFromHex(id)
+	bookResp, _, err := entity.GetOneByID(id)
+
+	if err != nil || bookResp.Book == nil {
+		return form.BookResponse{}, getHTTPCode(err), err
+	}
+
+	_, err = entity.repo.DeleteOne(ctx, bson.M{"_id": objID})
+	if err != nil {
+		return form.BookResponse{}, getHTTPCode(err), err
+	}
+	return bookResp, http.StatusOK, nil
 }

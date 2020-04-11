@@ -16,6 +16,7 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	bookRoute.GET("", getAllBooks(bookEntity))
 	bookRoute.GET("/:id", getBookById(bookEntity))
 	bookRoute.POST("", createBook(bookEntity))
+	bookRoute.DELETE("/:id", deleteBook(bookEntity))
 }
 
 // GetAllBooks godoc
@@ -28,9 +29,9 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 // @Router /books [get]
 func getAllBooks(entity repository.IBook) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		keyword:=ctx.Query("q")
+		keyword := ctx.Query("q")
 
-		if keyword!=""{
+		if keyword != "" {
 			books, code, err := entity.Search(keyword)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
@@ -96,6 +97,27 @@ func getBookById(entity repository.IBook) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id := ctx.Param("id")
 		book, code, err := entity.GetOneByID(id)
+
+		response := map[string]interface{}{
+			"book":  book,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// DeleteBook godoc
+// @Summary Delete book by id
+// @Description Delete book by id
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Book ID"
+// @Success 200 {object} form.BookResponse
+// @Router /books/{id} [delete]
+func deleteBook(entity repository.IBook) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		book, code, err := entity.Delete(id)
 
 		response := map[string]interface{}{
 			"book":  book,
