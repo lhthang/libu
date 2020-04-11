@@ -193,6 +193,12 @@ paths:
       consumes:
       - application/json
       description: Get book by id
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:

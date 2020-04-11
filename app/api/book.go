@@ -89,7 +89,7 @@ func createBook(entity repository.IBook) func(ctx *gin.Context) {
 // @Description Get book by id
 // @Accept  json
 // @Produce  json
-// Param id path string true "Book ID"
+// @Param id path string true "Book ID"
 // @Success 200 {object} form.BookResponse
 // @Router /books/{id} [get]
 func getBookById(entity repository.IBook) func(ctx *gin.Context) {
