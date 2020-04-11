@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.38.0
 	firebase.google.com/go v3.12.0+incompatible
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/araddon/dateparse v0.0.0-20200409225146-d820a6159ab1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ekyoung/gin-nice-recovery v0.0.0-20160510022553-1654dca486db
 	github.com/gin-gonic/gin v1.5.0

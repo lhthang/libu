@@ -1,5 +1,64 @@
 basePath: /api/v1
 definitions:
+  form.BookForm:
+    properties:
+      authors:
+        items:
+          type: string
+        type: array
+      categoryIds:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      image:
+        type: string
+      link:
+        type: string
+      publisher:
+        type: string
+      releaseAt:
+        type: string
+      title:
+        type: string
+    required:
+    - image
+    - title
+    type: object
+  form.BookResponse:
+    properties:
+      authors:
+        items:
+          type: string
+        type: array
+      categories:
+        items:
+          $ref: '#/definitions/model.Category'
+        type: array
+      categoryIds:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      link:
+        type: string
+      publisher:
+        type: string
+      releaseAt:
+        type: string
+      reviews:
+        items:
+          $ref: '#/definitions/model.Review'
+        type: array
+      title:
+        type: string
+    type: object
   form.CategoryForm:
     properties:
       id:
@@ -34,27 +93,6 @@ definitions:
         type: string
     required:
     - fullName
-    type: object
-  model.Book:
-    properties:
-      authors:
-        items:
-          type: string
-        type: array
-      description:
-        type: string
-      id:
-        type: string
-      image:
-        type: string
-      link:
-        type: string
-      publisher:
-        type: string
-      releaseAt:
-        type: string
-      title:
-        type: string
     type: object
   model.Category:
     properties:
@@ -116,6 +154,11 @@ paths:
       consumes:
       - application/json
       description: Get all books
+      parameters:
+      - description: Query
+        in: query
+        name: q
+        type: string
       produces:
       - application/json
       responses:
@@ -123,9 +166,41 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Book'
+              $ref: '#/definitions/form.BookResponse'
             type: array
       summary: Get all books
+    post:
+      consumes:
+      - application/json
+      description: Create book
+      parameters:
+      - description: BookForm
+        in: body
+        name: bookForm
+        required: true
+        schema:
+          $ref: '#/definitions/form.BookForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.BookResponse'
+      summary: Create book
+  /books/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get book by id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.BookResponse'
+      summary: Get book by id
   /categories:
     get:
       consumes:

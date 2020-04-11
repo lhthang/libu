@@ -59,6 +59,11 @@ func (entity *reviewEntity) Create(reviewForm form.ReviewForm) (model.Review, in
 	ctx, cancel := initContext()
 	defer cancel()
 
+	book, _, err := BookEntity.GetOneByID(reviewForm.BookID)
+
+	if book.Book == nil || err != nil {
+		return model.Review{}, getHTTPCode(err), err
+	}
 	review := model.Review{
 		Id:       primitive.NewObjectID(),
 		UpdateAt: time.Now(),
@@ -68,7 +73,7 @@ func (entity *reviewEntity) Create(reviewForm form.ReviewForm) (model.Review, in
 		Rating:   reviewForm.Rating,
 	}
 
-	_, err := entity.repo.InsertOne(ctx, review)
+	_, err = entity.repo.InsertOne(ctx, review)
 	if err != nil {
 		return model.Review{}, getHTTPCode(err), err
 	}
