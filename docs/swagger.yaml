@@ -94,6 +94,30 @@ definitions:
     required:
     - fullName
     type: object
+  form.UpdateUser:
+    properties:
+      roles:
+        items:
+          type: string
+        type: array
+      usernames:
+        items:
+          type: string
+        type: array
+    type: object
+  form.User:
+    properties:
+      fullName:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - fullName
+    - password
+    - username
+    type: object
   model.Category:
     properties:
       id:
@@ -393,6 +417,26 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update review
+  /sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Sign up
+      parameters:
+      - description: User
+        in: body
+        name: updateUser
+        required: true
+        schema:
+          $ref: '#/definitions/form.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+      summary: Sign up
   /user:
     get:
       consumes:
@@ -410,6 +454,69 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get all user
+  /users/favorites/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove favorite book
+      parameters:
+      - description: Book Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+      security:
+      - ApiKeyAuth: []
+      summary: Remove favorite book
+    put:
+      consumes:
+      - application/json
+      description: Add favorite book
+      parameters:
+      - description: Book Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+      security:
+      - ApiKeyAuth: []
+      summary: Add favorite book
+  /users/update-roles:
+    put:
+      consumes:
+      - application/json
+      description: Update users roles
+      parameters:
+      - description: Update User
+        in: body
+        name: updateUser
+        required: true
+        schema:
+          $ref: '#/definitions/form.UpdateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+      security:
+      - ApiKeyAuth: []
+      summary: Update users roles
   /users/update/{username}:
     put:
       consumes:

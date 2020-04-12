@@ -11,6 +11,7 @@ import (
 	"libu/app/form"
 	"libu/app/model"
 	"libu/my_db"
+	"libu/utils/arrays"
 	"libu/utils/bcrypt"
 	"libu/utils/constant"
 	"net/http"
@@ -29,6 +30,7 @@ type IUser interface {
 	CreateOne(userForm form.User) (*model.User, int, error)
 	UpdateUser(username string, userForm form.UpdateInformation) (model.User, int, error)
 	UpdateRole(updateUser form.UpdateUser) ([]model.User, int, []string)
+	UpdateFavorite(id, username, action string) (model.User, int, error)
 }
 
 //func NewToDoEntity
@@ -150,7 +152,7 @@ func (entity *userEntity) UpdateRole(userForm form.UpdateUser) ([]model.User, in
 	var errs []string
 
 	for _, name := range userForm.Roles {
-		if name != constant.ADMIN && name != constant.USER{
+		if name != constant.ADMIN && name != constant.USER {
 			return users, http.StatusBadRequest, append(errs, "one of roles is invalid")
 		}
 	}
@@ -172,4 +174,36 @@ func (entity *userEntity) UpdateRole(userForm form.UpdateUser) ([]model.User, in
 	}
 
 	return users, http.StatusOK, errs
+}
+
+func (entity *userEntity) UpdateFavorite(id, username, action string) (model.User, int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+
+	user, _, err := entity.GetOneByUsername(username)
+
+	if err != nil || user == nil {
+		return model.User{}, getHTTPCode(err), err
+	}
+
+	update := map[string]interface{}{}
+	if action == constant.ADD {
+		if arrays.Contains(user.FavoriteIds, id) {
+			return model.User{}, http.StatusBadRequest, errors.New("this is already added to your favorite list")
+		}
+		update = bson.M{"$push": bson.M{"favoriteIds": id}}
+	} else {
+		if !arrays.Contains(user.FavoriteIds, id) {
+			return model.User{}, http.StatusBadRequest, errors.New("this is not added to your favorite list")
+		}
+		update = bson.M{"$pull": bson.M{"favoriteIds": id}}
+	}
+
+	isReturnNewDoc := options.After
+	opts := &options.FindOneAndUpdateOptions{
+		ReturnDocument: &isReturnNewDoc,
+	}
+	err = entity.repo.FindOneAndUpdate(ctx, bson.M{"username": username}, update, opts).Decode(&user)
+
+	return *user, http.StatusOK, nil
 }

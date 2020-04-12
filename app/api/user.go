@@ -23,7 +23,8 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	userRoute.GET("/get-all", getAllUSer(userEntity))
 	userRoute.Use(middlewares.RequireAuthenticated())
 	userRoute.PUT("/update/:username", updateUser(userEntity))
-
+	userRoute.PUT("/favorites/:id", addFavorite(userEntity))
+	userRoute.DELETE("/favorites/:id", removeFavorite(userEntity))
 	// when need authentication
 	userRoute.Use(middlewares.RequireAuthorization(constant.ADMIN)) // when need authorization
 	userRoute.GET("", getAllUSer(userEntity))
@@ -54,6 +55,14 @@ func login(userEntity repository.IUser) func(ctx *gin.Context) {
 	}
 }
 
+// SignUp godoc
+// @Summary Sign up
+// @Description Sign up
+// @Accept  json
+// @Produce  json
+// @Param updateUser body form.User true "User"
+// @Success 200 {object} model.User
+// @Router /sign-up [post]
 func signUp(userEntity repository.IUser) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
@@ -124,6 +133,15 @@ func updateUser(userEntity repository.IUser) func(ctx *gin.Context) {
 	}
 }
 
+// UpdateRole godoc
+// @Summary Update users roles
+// @Description Update users roles
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param updateUser body form.UpdateUser true "Update User"
+// @Success 200 {object} model.User
+// @Router /users/update-roles [put]
 func updateRole(userEntity repository.IUser) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
@@ -137,6 +155,52 @@ func updateRole(userEntity repository.IUser) func(ctx *gin.Context) {
 		response := map[string]interface{}{
 			"users": user,
 			"error": errs,
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// AddFavorite godoc
+// @Summary Add favorite book
+// @Description Add favorite book
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id path string true "Book Id"
+// @Success 200 {object} model.User
+// @Router /users/favorites/{id} [put]
+func addFavorite(userEntity repository.IUser) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		username := jwt.GetUsername(ctx)
+
+		user, code, err := userEntity.UpdateFavorite(id, username, constant.ADD)
+		response := map[string]interface{}{
+			"user":  user,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// RemoveFavorite godoc
+// @Summary Remove favorite book
+// @Description Remove favorite book
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id path string true "Book Id"
+// @Success 200 {object} model.User
+// @Router /users/favorites/{id} [delete]
+func removeFavorite(userEntity repository.IUser) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		username := jwt.GetUsername(ctx)
+
+		user, code, err := userEntity.UpdateFavorite(id, username, constant.REMOVE)
+		response := map[string]interface{}{
+			"user":  user,
+			"error": err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}
