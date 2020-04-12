@@ -255,7 +255,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create book
+      description: Upload file
       parameters:
       - description: file
         in: formData
@@ -269,7 +269,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/string'
-      summary: Create book
+      summary: Upload file
   /categories:
     get:
       consumes:

@@ -80,14 +80,14 @@
         },
         "/books/upload": {
             "post": {
-                "description": "Create book",
+                "description": "Upload file",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Create book",
+                "summary": "Upload file",
                 "parameters": [
                     {
                         "type": "file",

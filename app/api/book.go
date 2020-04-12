@@ -130,9 +130,9 @@ func deleteBook(entity repository.IBook) func(ctx *gin.Context) {
 	}
 }
 
-// CreateBook godoc
-// @Summary Create book
-// @Description Create book
+// UploadFile godoc
+// @Summary Upload file
+// @Description Upload file
 // @Accept  json
 // @Produce  json
 // @Param file formData file true "file"
