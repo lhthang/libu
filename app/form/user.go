@@ -16,3 +16,8 @@ type UpdateInformation struct {
 	OldPassword string `json:"oldPassword,omitempty"`
 	Password    string `json:"password,omitempty"`
 }
+
+type UpdateUser struct {
+	Usernames []string `json:"usernames,omitempty"`
+	Roles     []string `json:"roles"`
+}

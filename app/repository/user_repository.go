@@ -28,6 +28,7 @@ type IUser interface {
 	GetOneByUsername(username string) (*model.User, int, error)
 	CreateOne(userForm form.User) (*model.User, int, error)
 	UpdateUser(username string, userForm form.UpdateInformation) (model.User, int, error)
+	UpdateRole(updateUser form.UpdateUser) ([]model.User, int, []string)
 }
 
 //func NewToDoEntity
@@ -127,9 +128,9 @@ func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInform
 		if userForm.Password == "" {
 			user.Password = password
 		}
-	}else{
+	} else {
 		err = copier.Copy(user, userForm)
-		user.Password=password
+		user.Password = password
 	}
 
 	isReturnNewDoc := options.After
@@ -137,7 +138,38 @@ func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInform
 		ReturnDocument: &isReturnNewDoc,
 	}
 
-	err = entity.repo.FindOneAndUpdate(ctx,bson.M{"username":username},bson.M{"$set":user},opts).Decode(&user)
+	err = entity.repo.FindOneAndUpdate(ctx, bson.M{"username": username}, bson.M{"$set": user}, opts).Decode(&user)
 
 	return *user, http.StatusOK, nil
+}
+
+func (entity *userEntity) UpdateRole(userForm form.UpdateUser) ([]model.User, int, []string) {
+	ctx, cancel := initContext()
+	defer cancel()
+	var users []model.User
+	var errs []string
+
+	for _, name := range userForm.Roles {
+		if name != constant.ADMIN && name != constant.USER{
+			return users, http.StatusBadRequest, append(errs, "one of roles is invalid")
+		}
+	}
+
+	for _, username := range userForm.Usernames {
+		user, _, err := entity.GetOneByUsername(username)
+
+		if err != nil || user == nil {
+			errs = append(errs, username+" not found")
+			continue
+		}
+
+		isReturnNewDoc := options.After
+		opts := &options.FindOneAndUpdateOptions{
+			ReturnDocument: &isReturnNewDoc,
+		}
+		err = entity.repo.FindOneAndUpdate(ctx, bson.M{"username": username}, bson.M{"$set": bson.M{"roles": userForm.Roles}}, opts).Decode(&user)
+		users = append(users, *user)
+	}
+
+	return users, http.StatusOK, errs
 }

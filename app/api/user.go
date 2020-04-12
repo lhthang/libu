@@ -27,6 +27,7 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	// when need authentication
 	userRoute.Use(middlewares.RequireAuthorization(constant.ADMIN)) // when need authorization
 	userRoute.GET("", getAllUSer(userEntity))
+	userRoute.PUT("/update-roles", updateRole(userEntity))
 }
 
 func login(userEntity repository.IUser) func(ctx *gin.Context) {
@@ -118,6 +119,24 @@ func updateUser(userEntity repository.IUser) func(ctx *gin.Context) {
 		response := map[string]interface{}{
 			"users": user,
 			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+func updateRole(userEntity repository.IUser) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+
+		updateUserForm := form.UpdateUser{}
+		if err := ctx.Bind(&updateUserForm); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+			return
+		}
+
+		user, code, errs := userEntity.UpdateRole(updateUserForm)
+		response := map[string]interface{}{
+			"users": user,
+			"error": errs,
 		}
 		ctx.JSON(code, response)
 	}
