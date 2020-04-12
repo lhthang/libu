@@ -9,6 +9,7 @@ import (
 	"libu/app/form"
 	"libu/app/model"
 	"libu/my_db"
+	"libu/utils/firebase"
 	"net/http"
 )
 
@@ -98,9 +99,20 @@ func (entity bookEntity) Create(bookForm form.BookForm) (form.BookResponse, int,
 		CategoryIds: categoryIds,
 		Image:       bookForm.Image,
 		Description: bookForm.Description,
-		Link:        bookForm.Link,
+		Link:        "",
 	}
+	channel := make(chan string)
+	if bookForm.File!=nil{
+		go func() {
 
+			url, _, err := firebase.UploadFile(*bookForm.File)
+			if err != nil {
+				logrus.Println(err)
+			}
+			channel <- url
+		}()
+		book.Link = <-channel
+	}
 	_, err = entity.repo.InsertOne(ctx, book)
 	if err != nil {
 		return form.BookResponse{}, getHTTPCode(err), err
