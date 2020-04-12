@@ -14,7 +14,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -96,7 +95,7 @@ func UploadFile(f multipart.FileHeader) (string, int, error) {
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
-	var errs error
+	/*var errs error
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -112,7 +111,25 @@ func UploadFile(f multipart.FileHeader) (string, int, error) {
 	wg.Wait()
 	if errs != nil {
 		return "", getHTTPCode(errs), errs
+	}*/
+	channel:=make(chan error)
+
+	go func() {
+		var errs error
+		wc := client.Bucket(bucketName).Object(f.Filename).NewWriter(ctx)
+		if _, err = io.Copy(wc, file); err != nil {
+			errs = err
+		}
+		if err := wc.Close(); err != nil {
+			errs = err
+		}
+		channel<-errs
+	}()
+	err=<-channel
+	if err != nil {
+		return "", getHTTPCode(err), err
 	}
+
 	return "gs://" + bucketName + "/" + f.Filename, http.StatusOK, nil
 }
 
