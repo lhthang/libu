@@ -7,7 +7,6 @@ import (
 	"libu/app/repository"
 	"libu/my_db"
 	err2 "libu/utils/err"
-	"libu/utils/firebase"
 	"net/http"
 )
 
@@ -17,7 +16,6 @@ func ApplyCategoryAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	categoryRoute.GET("", getAllCategories(categoryEntity))
 	categoryRoute.GET("/:id", getCategoryById(categoryEntity))
-	categoryRoute.POST("/upload", uploadFile(categoryEntity))
 	categoryRoute.POST("", createCategory(categoryEntity))
 	categoryRoute.PUT("/:id", updateCategory(categoryEntity))
 	categoryRoute.DELETE("/:id", deleteCategory(categoryEntity))
@@ -141,18 +139,4 @@ func deleteCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 	}
 }
 
-func uploadFile(categoryEntity repository.ICategory) func(ctx *gin.Context) {
-	return func(ctx *gin.Context) {
 
-		file, err := ctx.FormFile("file")
-		if err != nil {
-			logrus.Print(err)
-		}
-		resp, code, err := firebase.UploadFile(*file)
-		response := map[string]interface{}{
-			"resp": resp,
-			"err":  err2.GetErrorMessage(err),
-		}
-		ctx.JSON(code, response)
-	}
-}

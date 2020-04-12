@@ -78,6 +78,35 @@
                 }
             }
         },
+        "/books/upload": {
+            "post": {
+                "description": "Create book",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create book",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/string"
+                        }
+                    }
+                }
+            }
+        },
         "/books/{id}": {
             "get": {
                 "description": "Get book by id",
@@ -621,6 +650,9 @@
                     }
                 },
                 "description": {
+                    "type": "string"
+                },
+                "file": {
                     "type": "string"
                 },
                 "image": {
