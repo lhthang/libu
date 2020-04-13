@@ -2,10 +2,12 @@ package repository
 
 import (
 	"github.com/araddon/dateparse"
+	"github.com/jinzhu/copier"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"libu/app/form"
 	"libu/app/model"
 	"libu/my_db"
@@ -26,6 +28,7 @@ type IBook interface {
 	Create(bookForm form.BookForm) (form.BookResponse, int, error)
 	GetOneByID(id string) (form.BookResponse, int, error)
 	Delete(id string) (form.BookResponse, int, error)
+	Update(id string, bookForm form.UpdateBookForm) (form.BookResponse, int, error)
 }
 
 func NewBookEntity(resource *my_db.Resource) IBook {
@@ -47,6 +50,27 @@ func getCategoryOfBook(book model.Book) []model.Category {
 		categories = append(categories, *category)
 	}
 	return categories
+}
+
+func getReviewsOfBook(book model.Book) ([]model.Review, float32) {
+	reviews, _, err := ReviewEntity.GetByBookId(book.Id.Hex())
+	if err != nil {
+		return nil, 0
+	}
+	rating := calculateRating(reviews)
+	return reviews, rating
+}
+
+func calculateRating(reviews []model.Review) float32 {
+	if len(reviews) == 0 {
+		return 0
+	}
+	sum := 0
+	for _, review := range reviews {
+		sum = sum + review.Rating
+	}
+	rating := float32(sum) / float32(len(reviews))
+	return rating
 }
 
 func (entity bookEntity) GetAll() ([]form.BookResponse, int, error) {
@@ -102,7 +126,7 @@ func (entity bookEntity) Create(bookForm form.BookForm) (form.BookResponse, int,
 		Link:        "",
 	}
 	channel := make(chan string)
-	if bookForm.File!=nil{
+	if bookForm.File != nil {
 		go func() {
 
 			url, _, err := firebase.UploadFile(*bookForm.File)
@@ -138,9 +162,11 @@ func (entity bookEntity) GetOneByID(id string) (form.BookResponse, int, error) {
 		return form.BookResponse{}, getHTTPCode(err), err
 	}
 
+	reviews, rating := getReviewsOfBook(book)
 	bookResp := form.BookResponse{
 		Book:       &book,
-		Reviews:    nil,
+		Reviews:    reviews,
+		Rating:     rating,
 		Categories: getCategoryOfBook(book),
 	}
 	return bookResp, http.StatusOK, nil
@@ -200,4 +226,43 @@ func (entity bookEntity) Delete(id string) (form.BookResponse, int, error) {
 		return form.BookResponse{}, getHTTPCode(err), err
 	}
 	return bookResp, http.StatusOK, nil
+}
+
+func (entity bookEntity) Update(id string, bookForm form.UpdateBookForm) (form.BookResponse, int, error) {
+	ctx, cancel := initContext()
+
+	defer cancel()
+	objID, _ := primitive.ObjectIDFromHex(id)
+	bookResp, _, err := entity.GetOneByID(id)
+	if err != nil || bookResp.Book == nil {
+		return form.BookResponse{}, getHTTPCode(err), err
+	}
+
+	var categoryIds []string
+	for _, id := range bookForm.CategoryIds {
+		category, _, _ := CategoryEntity.GetOneByID(id)
+		if category != nil {
+			categoryIds = append(categoryIds, id)
+		}
+	}
+	bookForm.CategoryIds = categoryIds
+	err = copier.Copy(bookResp.Book, bookForm)
+	if err != nil {
+		return form.BookResponse{}, getHTTPCode(err), err
+	}
+
+	isReturnNewDoc := options.After
+	opts := &options.FindOneAndUpdateOptions{
+		ReturnDocument: &isReturnNewDoc,
+	}
+	var updatedBook model.Book
+
+	err = entity.repo.FindOneAndUpdate(ctx, bson.M{"_id": objID}, bson.M{"$set": bookResp.Book}, opts).Decode(&updatedBook)
+	newBookResp := form.BookResponse{
+		Book:       &updatedBook,
+		Reviews:    bookResp.Reviews,
+		Categories: getCategoryOfBook(updatedBook),
+		Rating:     bookResp.Rating,
+	}
+	return newBookResp, http.StatusOK, nil
 }

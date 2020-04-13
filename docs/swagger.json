@@ -135,6 +135,42 @@
                     }
                 }
             },
+            "put": {
+                "description": "Update book by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Update book by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Book ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "BookForm",
+                        "name": "bookForm",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/form.UpdateBookForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/form.BookResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "Delete book by id",
                 "consumes": [
@@ -708,6 +744,9 @@
                 "publisher": {
                     "type": "string"
                 },
+                "rating": {
+                    "type": "number"
+                },
                 "releaseAt": {
                     "type": "string"
                 },
@@ -755,6 +794,44 @@
                     "type": "integer"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "form.UpdateBookForm": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "authors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "categoryIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "publisher": {
+                    "type": "string"
+                },
+                "releaseAt": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }

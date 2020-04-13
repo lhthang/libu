@@ -18,6 +18,7 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	bookRoute.GET("", getAllBooks(bookEntity))
 	bookRoute.GET("/:id", getBookById(bookEntity))
 	bookRoute.POST("", createBook(bookEntity))
+	bookRoute.PUT("/:id", updateBook(bookEntity))
 	bookRoute.DELETE("/:id", deleteBook(bookEntity))
 	bookRoute.POST("/upload", uploadFile())
 }
@@ -101,6 +102,34 @@ func getBookById(entity repository.IBook) func(ctx *gin.Context) {
 		id := ctx.Param("id")
 		book, code, err := entity.GetOneByID(id)
 
+		response := map[string]interface{}{
+			"book":  book,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// UpdateBook godoc
+// @Summary Update book by id
+// @Description Update book by id
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Book ID"
+// @Param bookForm body form.UpdateBookForm true "BookForm"
+// @Success 200 {object} form.BookResponse
+// @Router /books/{id} [put]
+func updateBook(entity repository.IBook) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		var bookForm form.UpdateBookForm
+
+		if err := ctx.Bind(&bookForm); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+			return
+		}
+
+		book, code, err := entity.Update(id, bookForm)
 		response := map[string]interface{}{
 			"book":  book,
 			"error": err2.GetErrorMessage(err),

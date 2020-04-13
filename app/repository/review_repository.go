@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"github.com/jinzhu/copier"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -23,6 +24,7 @@ type reviewEntity struct {
 
 type IReview interface {
 	GetOneById(id string) (*model.Review, int, error)
+	GetByBookId(bookId string) ([]model.Review, int, error)
 	Create(reviewForm form.ReviewForm) (model.Review, int, error)
 	Update(id, username string, reviewForm form.ReviewForm) (model.Review, int, error)
 	Delete(id, username string) (model.Review, int, error)
@@ -138,4 +140,28 @@ func (entity *reviewEntity) Delete(id, username string) (model.Review, int, erro
 	}
 
 	return *review, http.StatusOK, nil
+}
+
+func (entity *reviewEntity) GetByBookId(bookId string) ([]model.Review, int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+
+	var reviews []model.Review
+
+	cursor, err := entity.repo.Find(ctx, bson.M{"bookId": bookId})
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+
+	for cursor.Next(ctx) {
+		var review model.Review
+		err = cursor.Decode(&review)
+		if err != nil {
+			logrus.Print(err)
+			continue
+		}
+		reviews = append(reviews, review)
+	}
+
+	return reviews, http.StatusOK, nil
 }
