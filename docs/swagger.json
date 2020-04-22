@@ -222,6 +222,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create category",
                 "consumes": [
                     "application/json"
@@ -283,6 +288,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update category",
                 "consumes": [
                     "application/json"
@@ -319,6 +329,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete category",
                 "consumes": [
                     "application/json"

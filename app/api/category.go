@@ -5,7 +5,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"libu/app/form"
 	"libu/app/repository"
+	"libu/middlewares"
 	"libu/my_db"
+	"libu/utils/constant"
 	err2 "libu/utils/err"
 	"net/http"
 )
@@ -16,6 +18,9 @@ func ApplyCategoryAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	categoryRoute.GET("", getAllCategories(categoryEntity))
 	categoryRoute.GET("/:id", getCategoryById(categoryEntity))
+
+	categoryRoute.Use(middlewares.RequireAuthenticated())
+	categoryRoute.Use(middlewares.RequireAuthorization(constant.ADMIN))
 	categoryRoute.POST("", createCategory(categoryEntity))
 	categoryRoute.PUT("/:id", updateCategory(categoryEntity))
 	categoryRoute.DELETE("/:id", deleteCategory(categoryEntity))
@@ -70,6 +75,7 @@ func getCategoryById(categoryEntity repository.ICategory) func(ctx *gin.Context)
 // @Description Create category
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Param category body form.CategoryForm true "Category"
 // @Success 200 {object} model.Category
 // @Router /categories [post]
@@ -96,6 +102,7 @@ func createCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 // @Description Update category
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Param id path string true "Category ID"
 // @Param category body form.CategoryForm true "CategoryForm"
 // @Success 200 {object} model.Category
@@ -123,6 +130,7 @@ func updateCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 // @Description Delete category
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Param id path string true "Category ID"
 // @Success 200 {object} model.Category
 // @Router /categories/{id} [delete]

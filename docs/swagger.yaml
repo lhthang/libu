@@ -354,6 +354,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.Category'
+      security:
+      - ApiKeyAuth: []
       summary: Create category
   /categories/{id}:
     delete:
@@ -373,6 +375,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.Category'
+      security:
+      - ApiKeyAuth: []
       summary: Delete category
     get:
       consumes:
@@ -417,6 +421,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.Category'
+      security:
+      - ApiKeyAuth: []
       summary: Update category
   /reviews:
     post:
