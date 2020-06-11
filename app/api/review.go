@@ -21,6 +21,7 @@ func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 }
 
 // CreateReview godoc
+// @Tags ReviewController
 // @Summary Create review
 // @Description Create review
 // @Accept  json
@@ -50,6 +51,7 @@ func createReview(reviewEntity repository.IReview) func(ctx *gin.Context) {
 }
 
 // UpdateReview godoc
+// @Tags ReviewController
 // @Summary Update review
 // @Description Update review
 // @Accept  json
@@ -81,6 +83,7 @@ func updateReview(reviewEntity repository.IReview) func(ctx *gin.Context) {
 }
 
 // DeleteReviewByID godoc
+// @Tags ReviewController
 // @Summary Delete review by id
 // @Description  Delete review by id
 // @Accept  json

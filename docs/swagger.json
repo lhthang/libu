@@ -27,6 +27,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "BookController"
+                ],
                 "summary": "Get all books",
                 "parameters": [
                     {
@@ -55,6 +58,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "BookController"
                 ],
                 "summary": "Create book",
                 "parameters": [
@@ -87,6 +93,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "BookController"
+                ],
                 "summary": "Upload file",
                 "parameters": [
                     {
@@ -116,6 +125,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "BookController"
+                ],
                 "summary": "Get book by id",
                 "parameters": [
                     {
@@ -142,6 +154,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "BookController"
                 ],
                 "summary": "Update book by id",
                 "parameters": [
@@ -179,6 +194,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "BookController"
+                ],
                 "summary": "Delete book by id",
                 "parameters": [
                     {
@@ -208,6 +226,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "CategoryController"
+                ],
                 "summary": "Get all categories",
                 "responses": {
                     "200": {
@@ -233,6 +254,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "CategoryController"
                 ],
                 "summary": "Create category",
                 "parameters": [
@@ -264,6 +288,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "CategoryController"
                 ],
                 "summary": "Get category by id",
                 "parameters": [
@@ -299,6 +326,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "CategoryController"
                 ],
                 "summary": "Update category",
                 "parameters": [
@@ -341,6 +371,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "CategoryController"
+                ],
                 "summary": "Delete category",
                 "parameters": [
                     {
@@ -374,6 +407,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "ReviewController"
                 ],
                 "summary": "Create review",
                 "parameters": [
@@ -410,6 +446,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "ReviewController"
                 ],
                 "summary": "Update review",
                 "parameters": [
@@ -452,6 +491,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "ReviewController"
+                ],
                 "summary": "Delete review by id",
                 "parameters": [
                     {
@@ -483,6 +525,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "UserController"
                 ],
                 "summary": "Sign up",
                 "parameters": [
@@ -520,6 +565,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "UserController"
+                ],
                 "summary": "Get all user",
                 "responses": {
                     "200": {
@@ -547,6 +595,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "UserController"
                 ],
                 "summary": "Add favorite book",
                 "parameters": [
@@ -579,6 +630,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "UserController"
                 ],
                 "summary": "Remove favorite book",
                 "parameters": [
@@ -613,6 +667,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "UserController"
                 ],
                 "summary": "Update users roles",
                 "parameters": [
@@ -649,6 +706,9 @@
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "UserController"
                 ],
                 "summary": "Update user",
                 "parameters": [

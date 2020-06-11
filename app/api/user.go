@@ -56,6 +56,7 @@ func login(userEntity repository.IUser) func(ctx *gin.Context) {
 }
 
 // SignUp godoc
+// @Tags UserController
 // @Summary Sign up
 // @Description Sign up
 // @Accept  json
@@ -81,6 +82,7 @@ func signUp(userEntity repository.IUser) func(ctx *gin.Context) {
 }
 
 // GetAllUser godoc
+// @Tags UserController
 // @Summary Get all user
 // @Description Get all user
 // @Accept  json
@@ -100,6 +102,7 @@ func getAllUSer(userEntity repository.IUser) func(ctx *gin.Context) {
 }
 
 // UpdateUser godoc
+// @Tags UserController
 // @Summary Update user
 // @Description Update user
 // @Accept  json
@@ -134,6 +137,7 @@ func updateUser(userEntity repository.IUser) func(ctx *gin.Context) {
 }
 
 // UpdateRole godoc
+// @Tags UserController
 // @Summary Update users roles
 // @Description Update users roles
 // @Accept  json
@@ -161,6 +165,7 @@ func updateRole(userEntity repository.IUser) func(ctx *gin.Context) {
 }
 
 // AddFavorite godoc
+// @Tags UserController
 // @Summary Add favorite book
 // @Description Add favorite book
 // @Accept  json
@@ -184,6 +189,7 @@ func addFavorite(userEntity repository.IUser) func(ctx *gin.Context) {
 }
 
 // RemoveFavorite godoc
+// @Tags UserController
 // @Summary Remove favorite book
 // @Description Remove favorite book
 // @Accept  json

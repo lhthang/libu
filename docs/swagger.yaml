@@ -222,6 +222,8 @@ paths:
               $ref: '#/definitions/form.BookResponse'
             type: array
       summary: Get all books
+      tags:
+      - BookController
     post:
       consumes:
       - application/json
@@ -241,6 +243,8 @@ paths:
           schema:
             $ref: '#/definitions/form.BookResponse'
       summary: Create book
+      tags:
+      - BookController
   /books/{id}:
     delete:
       consumes:
@@ -260,6 +264,8 @@ paths:
           schema:
             $ref: '#/definitions/form.BookResponse'
       summary: Delete book by id
+      tags:
+      - BookController
     get:
       consumes:
       - application/json
@@ -278,6 +284,8 @@ paths:
           schema:
             $ref: '#/definitions/form.BookResponse'
       summary: Get book by id
+      tags:
+      - BookController
     put:
       consumes:
       - application/json
@@ -302,6 +310,8 @@ paths:
           schema:
             $ref: '#/definitions/form.BookResponse'
       summary: Update book by id
+      tags:
+      - BookController
   /books/upload:
     post:
       consumes:
@@ -321,6 +331,8 @@ paths:
           schema:
             $ref: '#/definitions/string'
       summary: Upload file
+      tags:
+      - BookController
   /categories:
     get:
       consumes:
@@ -336,6 +348,8 @@ paths:
               $ref: '#/definitions/model.Category'
             type: array
       summary: Get all categories
+      tags:
+      - CategoryController
     post:
       consumes:
       - application/json
@@ -357,6 +371,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Create category
+      tags:
+      - CategoryController
   /categories/{id}:
     delete:
       consumes:
@@ -378,6 +394,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Delete category
+      tags:
+      - CategoryController
     get:
       consumes:
       - application/json
@@ -398,6 +416,8 @@ paths:
               $ref: '#/definitions/model.Category'
             type: array
       summary: Get category by id
+      tags:
+      - CategoryController
     put:
       consumes:
       - application/json
@@ -424,6 +444,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update category
+      tags:
+      - CategoryController
   /reviews:
     post:
       consumes:
@@ -446,6 +468,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Create review
+      tags:
+      - ReviewController
   /reviews/{id}:
     delete:
       consumes:
@@ -469,6 +493,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Delete review by id
+      tags:
+      - ReviewController
     put:
       consumes:
       - application/json
@@ -495,6 +521,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update review
+      tags:
+      - ReviewController
   /sign-up:
     post:
       consumes:
@@ -515,6 +543,8 @@ paths:
           schema:
             $ref: '#/definitions/model.User'
       summary: Sign up
+      tags:
+      - UserController
   /user:
     get:
       consumes:
@@ -532,6 +562,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get all user
+      tags:
+      - UserController
   /users/favorites/{id}:
     delete:
       consumes:
@@ -553,6 +585,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Remove favorite book
+      tags:
+      - UserController
     put:
       consumes:
       - application/json
@@ -573,6 +607,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Add favorite book
+      tags:
+      - UserController
   /users/update-roles:
     put:
       consumes:
@@ -595,6 +631,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update users roles
+      tags:
+      - UserController
   /users/update/{username}:
     put:
       consumes:
@@ -622,6 +660,8 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update user
+      tags:
+      - UserController
 securityDefinitions:
   ApiKeyAuth:
     in: header

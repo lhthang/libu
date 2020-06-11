@@ -27,6 +27,7 @@ func ApplyCategoryAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 }
 
 // GetAllCategories godoc
+// @Tags CategoryController
 // @Summary Get all categories
 // @Description Get all categories
 // @Accept  json
@@ -49,6 +50,7 @@ func getAllCategories(categoryEntity repository.ICategory) func(ctx *gin.Context
 }
 
 // GetCategoryByID godoc
+// @Tags CategoryController
 // @Summary Get category by id
 // @Description Get category by id
 // @Accept  json
@@ -71,6 +73,7 @@ func getCategoryById(categoryEntity repository.ICategory) func(ctx *gin.Context)
 }
 
 // CreateCategory godoc
+// @Tags CategoryController
 // @Summary Create category
 // @Description Create category
 // @Accept  json
@@ -98,6 +101,7 @@ func createCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 }
 
 // UpdateCategory godoc
+// @Tags CategoryController
 // @Summary Update category
 // @Description Update category
 // @Accept  json
@@ -126,6 +130,7 @@ func updateCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 }
 
 // DeleteCategory godoc
+// @Tags CategoryController
 // @Summary Delete category
 // @Description Delete category
 // @Accept  json

@@ -24,6 +24,7 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 }
 
 // GetAllBooks godoc
+// @Tags BookController
 // @Summary Get all books
 // @Description Get all books
 // @Accept  json
@@ -64,6 +65,7 @@ func getAllBooks(entity repository.IBook) func(ctx *gin.Context) {
 }
 
 // CreateBook godoc
+// @Tags BookController
 // @Summary Create book
 // @Description Create book
 // @Accept  json
@@ -90,6 +92,7 @@ func createBook(entity repository.IBook) func(ctx *gin.Context) {
 }
 
 // GetBookByID godoc
+// @Tags BookController
 // @Summary Get book by id
 // @Description Get book by id
 // @Accept  json
@@ -111,6 +114,7 @@ func getBookById(entity repository.IBook) func(ctx *gin.Context) {
 }
 
 // UpdateBook godoc
+// @Tags BookController
 // @Summary Update book by id
 // @Description Update book by id
 // @Accept  json
@@ -139,6 +143,7 @@ func updateBook(entity repository.IBook) func(ctx *gin.Context) {
 }
 
 // DeleteBook godoc
+// @Tags BookController
 // @Summary Delete book by id
 // @Description Delete book by id
 // @Accept  json
@@ -160,6 +165,7 @@ func deleteBook(entity repository.IBook) func(ctx *gin.Context) {
 }
 
 // UploadFile godoc
+// @Tags BookController
 // @Summary Upload file
 // @Description Upload file
 // @Accept  json
