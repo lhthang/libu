@@ -495,6 +495,28 @@ paths:
       summary: Delete review by id
       tags:
       - ReviewController
+    get:
+      consumes:
+      - application/json
+      description: Get review by id
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Review'
+      security:
+      - ApiKeyAuth: []
+      summary: Get review by id
+      tags:
+      - ReviewController
     put:
       consumes:
       - application/json

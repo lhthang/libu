@@ -15,9 +15,33 @@ func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	reviewRoute := app.Group("reviews")
 	reviewRoute.Use(middlewares.RequireAuthenticated())
+	reviewRoute.GET("", getAllReviews(reviewEntity))
 	reviewRoute.POST("", createReview(reviewEntity))
 	reviewRoute.PUT("/:id", updateReview(reviewEntity))
 	reviewRoute.DELETE("/:id", deleteReview(reviewEntity))
+}
+
+// GetReviewById godoc
+// @Tags ReviewController
+// @Summary Get review by id
+// @Description Get review by id
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id path string true "Review ID"
+// @Success 200 {object} model.Review
+// @Router /reviews/{id} [get]
+func getAllReviews(reviewEntity repository.IReview) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		//username := jwt.GetUsername(ctx)
+		review, code, err := reviewEntity.GetOneById(id)
+		response := map[string]interface{}{
+			"review": review,
+			"error":  err,
+		}
+		ctx.JSON(code, response)
+	}
 }
 
 // CreateReview godoc
