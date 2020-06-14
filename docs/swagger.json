@@ -586,7 +586,7 @@
                 }
             }
         },
-        "/user": {
+        "/users": {
             "get": {
                 "security": [
                     {
@@ -610,7 +610,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.User"
+                                "$ref": "#/definitions/form.UserResponse"
                             }
                         }
                     }
@@ -992,6 +992,26 @@
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "form.UserResponse": {
+            "type": "object",
+            "properties": {
+                "favoriteIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "username": {

@@ -21,3 +21,10 @@ type UpdateUser struct {
 	Usernames []string `json:"usernames,omitempty"`
 	Roles     []string `json:"roles"`
 }
+
+type UserResponse struct {
+	Id          string   `json:"id"`
+	Username    string   `bson:"username" json:"username"`
+	FullName    string   `bson:"fullName" json:"fullName"`
+	FavoriteIds []string `bson:"favoriteIds" json:"favoriteIds"`
+}

@@ -88,8 +88,8 @@ func signUp(userEntity repository.IUser) func(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {array} model.User
-// @Router /user [get]
+// @Success 200 {array} form.UserResponse
+// @Router /users [get]
 func getAllUSer(userEntity repository.IUser) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		list, code, err := userEntity.GetAll()

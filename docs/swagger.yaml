@@ -147,6 +147,19 @@ definitions:
     - password
     - username
     type: object
+  form.UserResponse:
+    properties:
+      favoriteIds:
+        items:
+          type: string
+        type: array
+      fullName:
+        type: string
+      id:
+        type: string
+      username:
+        type: string
+    type: object
   model.Category:
     properties:
       id:
@@ -567,7 +580,7 @@ paths:
       summary: Sign up
       tags:
       - UserController
-  /user:
+  /users:
     get:
       consumes:
       - application/json
@@ -579,7 +592,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.User'
+              $ref: '#/definitions/form.UserResponse'
             type: array
       security:
       - ApiKeyAuth: []

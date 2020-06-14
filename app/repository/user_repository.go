@@ -25,7 +25,7 @@ type userEntity struct {
 }
 
 type IUser interface {
-	GetAll() ([]model.User, int, error)
+	GetAll() ([]form.UserResponse, int, error)
 	GetOneByUsername(username string) (*model.User, int, error)
 	CreateOne(userForm form.User) (*model.User, int, error)
 	UpdateUser(username string, userForm form.UpdateInformation) (model.User, int, error)
@@ -40,15 +40,15 @@ func NewUserEntity(resource *my_db.Resource) IUser {
 	return UserEntity
 }
 
-func (entity *userEntity) GetAll() ([]model.User, int, error) {
-	usersList := []model.User{}
+func (entity *userEntity) GetAll() ([]form.UserResponse, int, error) {
+	usersList := []form.UserResponse{}
 	ctx, cancel := initContext()
 	defer cancel()
 	cursor, err := entity.repo.Find(ctx, bson.M{})
 
 	if err != nil {
 		logrus.Print(err)
-		return []model.User{}, 400, err
+		return []form.UserResponse{}, 400, err
 	}
 
 	for cursor.Next(ctx) {
@@ -57,7 +57,12 @@ func (entity *userEntity) GetAll() ([]model.User, int, error) {
 		if err != nil {
 			logrus.Print(err)
 		}
-		usersList = append(usersList, user)
+		usersList = append(usersList, form.UserResponse{
+			Id:          user.Id.Hex(),
+			Username:    user.Username,
+			FullName:    user.FullName,
+			FavoriteIds: user.FavoriteIds,
+		})
 	}
 	return usersList, http.StatusOK, nil
 }
