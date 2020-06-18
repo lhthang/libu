@@ -52,6 +52,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create book",
                 "consumes": [
                     "application/json"
@@ -86,6 +91,11 @@
         },
         "/books/upload": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Upload file",
                 "consumes": [
                     "application/json"
@@ -148,6 +158,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update book by id",
                 "consumes": [
                     "application/json"
@@ -187,6 +202,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete book by id",
                 "consumes": [
                     "application/json"
@@ -395,6 +415,30 @@
             }
         },
         "/reviews": {
+            "get": {
+                "description": "Get all reviews",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReviewController"
+                ],
+                "summary": "Get all reviews",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Review"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -435,11 +479,6 @@
         },
         "/reviews/{id}": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Get review by id",
                 "consumes": [
                     "application/json"
@@ -546,6 +585,41 @@
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/model.Review"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/{id}/book": {
+            "get": {
+                "description": "Get reviews by book",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReviewController"
+                ],
+                "summary": "Get reviews by book",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Review ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/form.ReviewResponse"
                             }
                         }
                     }
@@ -908,6 +982,20 @@
                 }
             }
         },
+        "form.ReviewResponse": {
+            "type": "object",
+            "properties": {
+                "avgRating": {
+                    "type": "number"
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Review"
+                    }
+                }
+            }
+        },
         "form.UpdateBookForm": {
             "type": "object",
             "required": [
@@ -1013,6 +1101,12 @@
                 },
                 "id": {
                     "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "username": {
                     "type": "string"

@@ -87,6 +87,15 @@ definitions:
     required:
     - bookId
     type: object
+  form.ReviewResponse:
+    properties:
+      avgRating:
+        type: number
+      reviews:
+        items:
+          $ref: '#/definitions/model.Review'
+        type: array
+    type: object
   form.UpdateBookForm:
     properties:
       authors:
@@ -157,6 +166,10 @@ definitions:
         type: string
       id:
         type: string
+      roles:
+        items:
+          type: string
+        type: array
       username:
         type: string
     type: object
@@ -255,6 +268,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/form.BookResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Create book
       tags:
       - BookController
@@ -276,6 +291,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/form.BookResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Delete book by id
       tags:
       - BookController
@@ -322,6 +339,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/form.BookResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Update book by id
       tags:
       - BookController
@@ -343,6 +362,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/string'
+      security:
+      - ApiKeyAuth: []
       summary: Upload file
       tags:
       - BookController
@@ -460,6 +481,22 @@ paths:
       tags:
       - CategoryController
   /reviews:
+    get:
+      consumes:
+      - application/json
+      description: Get all reviews
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Review'
+            type: array
+      summary: Get all reviews
+      tags:
+      - ReviewController
     post:
       consumes:
       - application/json
@@ -525,8 +562,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/model.Review'
-      security:
-      - ApiKeyAuth: []
       summary: Get review by id
       tags:
       - ReviewController
@@ -556,6 +591,29 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update review
+      tags:
+      - ReviewController
+  /reviews/{id}/book:
+    get:
+      consumes:
+      - application/json
+      description: Get reviews by book
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/form.ReviewResponse'
+            type: array
+      summary: Get reviews by book
       tags:
       - ReviewController
   /sign-up:

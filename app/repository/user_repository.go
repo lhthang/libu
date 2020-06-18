@@ -62,6 +62,7 @@ func (entity *userEntity) GetAll() ([]form.UserResponse, int, error) {
 			Username:    user.Username,
 			FullName:    user.FullName,
 			FavoriteIds: user.FavoriteIds,
+			Roles: user.Roles,
 		})
 	}
 	return usersList, http.StatusOK, nil

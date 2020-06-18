@@ -24,7 +24,7 @@ type reviewEntity struct {
 
 type IReview interface {
 	GetOneById(id string) (*model.Review, int, error)
-	GetByBookId(bookId string) ([]model.Review, int, error)
+	GetByBookId(bookId string) (*form.ReviewResponse, int, error)
 	Create(reviewForm form.ReviewForm) (model.Review, int, error)
 	Update(id, username string, reviewForm form.ReviewForm) (model.Review, int, error)
 	Delete(id, username string) (model.Review, int, error)
@@ -142,11 +142,11 @@ func (entity *reviewEntity) Delete(id, username string) (model.Review, int, erro
 	return *review, http.StatusOK, nil
 }
 
-func (entity *reviewEntity) GetByBookId(bookId string) ([]model.Review, int, error) {
+func (entity *reviewEntity) GetByBookId(bookId string) (*form.ReviewResponse, int, error) {
 	ctx, cancel := initContext()
 	defer cancel()
 
-	var reviews []model.Review
+	var reviewResp form.ReviewResponse
 
 	cursor, err := entity.repo.Find(ctx, bson.M{"bookId": bookId})
 	if err != nil {
@@ -160,8 +160,21 @@ func (entity *reviewEntity) GetByBookId(bookId string) ([]model.Review, int, err
 			logrus.Print(err)
 			continue
 		}
-		reviews = append(reviews, review)
+		reviewResp.Reviews = append(reviewResp.Reviews, review)
 	}
+	reviewResp.AvgRating = calculateRating(reviewResp.Reviews)
 
-	return reviews, http.StatusOK, nil
+	return &reviewResp, http.StatusOK, nil
+}
+
+func calculateRating(reviews []model.Review) float32 {
+	if len(reviews) == 0 {
+		return 0
+	}
+	sum := 0
+	for _, review := range reviews {
+		sum = sum + review.Rating
+	}
+	rating := float32(sum) / float32(len(reviews))
+	return rating
 }

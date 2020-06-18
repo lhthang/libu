@@ -27,4 +27,5 @@ type UserResponse struct {
 	Username    string   `bson:"username" json:"username"`
 	FullName    string   `bson:"fullName" json:"fullName"`
 	FavoriteIds []string `bson:"favoriteIds" json:"favoriteIds"`
+	Roles       []string `json:"roles"`
 }

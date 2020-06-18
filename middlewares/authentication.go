@@ -75,3 +75,20 @@ func RequireAuthenticated()  gin.HandlerFunc {
 		return
 	}
 }
+
+func ValidateToken(token string) bool{
+	claims := &Claims{}
+	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return false
+		}
+	}
+	if !tkn.Valid {
+		return false
+	}
+	return true
+}

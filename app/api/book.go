@@ -5,7 +5,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"libu/app/form"
 	"libu/app/repository"
+	"libu/middlewares"
 	"libu/my_db"
+	"libu/utils/constant"
 	err2 "libu/utils/err"
 	"libu/utils/firebase"
 	"net/http"
@@ -17,6 +19,8 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	bookRoute := app.Group("books")
 	bookRoute.GET("", getAllBooks(bookEntity))
 	bookRoute.GET("/:id", getBookById(bookEntity))
+	bookRoute.Use(middlewares.RequireAuthenticated())
+	bookRoute.Use(middlewares.RequireAuthorization(constant.ADMIN))
 	bookRoute.POST("", createBook(bookEntity))
 	bookRoute.PUT("/:id", updateBook(bookEntity))
 	bookRoute.DELETE("/:id", deleteBook(bookEntity))
@@ -70,6 +74,7 @@ func getAllBooks(entity repository.IBook) func(ctx *gin.Context) {
 // @Description Create book
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Param bookForm body form.BookForm true "BookForm"
 // @Success 200 {object} form.BookResponse
 // @Router /books [post]
@@ -119,6 +124,7 @@ func getBookById(entity repository.IBook) func(ctx *gin.Context) {
 // @Description Update book by id
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Param id path string true "Book ID"
 // @Param bookForm body form.UpdateBookForm true "BookForm"
 // @Success 200 {object} form.BookResponse
@@ -148,6 +154,7 @@ func updateBook(entity repository.IBook) func(ctx *gin.Context) {
 // @Description Delete book by id
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Param id path string true "Book ID"
 // @Success 200 {object} form.BookResponse
 // @Router /books/{id} [delete]
@@ -170,6 +177,7 @@ func deleteBook(entity repository.IBook) func(ctx *gin.Context) {
 // @Description Upload file
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Param file formData file true "file"
 // @Success 200 {object} string
 // @Router /books/upload [post]

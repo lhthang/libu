@@ -16,6 +16,7 @@ import (
 func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	userEntity := repository.NewUserEntity(resource)
 	authRoute := app.Group("")
+	authRoute.GET("/check-token/:token", checkToken())
 	authRoute.POST("/login", login(userEntity))
 	authRoute.POST("/sign-up", signUp(userEntity))
 
@@ -29,6 +30,17 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	userRoute.Use(middlewares.RequireAuthorization(constant.ADMIN)) // when need authorization
 	userRoute.GET("", getAllUSer(userEntity))
 	userRoute.PUT("/update-roles", updateRole(userEntity))
+}
+
+func checkToken() func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		token :=ctx.Param("token")
+		isValid := middlewares.ValidateToken(token)
+		response := map[string]interface{}{
+			"isValid": isValid,
+		}
+		ctx.JSON(200, response)
+	}
 }
 
 func login(userEntity repository.IUser) func(ctx *gin.Context) {

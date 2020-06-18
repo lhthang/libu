@@ -14,11 +14,34 @@ func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	reviewEntity := repository.NewReviewEntity(resource)
 
 	reviewRoute := app.Group("reviews")
-	reviewRoute.Use(middlewares.RequireAuthenticated())
 	reviewRoute.GET("", getAllReviews(reviewEntity))
+	reviewRoute.GET("/:id", getReviewById(reviewEntity))
+	reviewRoute.GET("/:id/book", getAllReviewsByBook(reviewEntity))
+	reviewRoute.Use(middlewares.RequireAuthenticated())
 	reviewRoute.POST("", createReview(reviewEntity))
 	reviewRoute.PUT("/:id", updateReview(reviewEntity))
 	reviewRoute.DELETE("/:id", deleteReview(reviewEntity))
+}
+
+// GetAllReviews godoc
+// @Tags ReviewController
+// @Summary Get all reviews
+// @Description Get all reviews
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} model.Review
+// @Router /reviews [get]
+func getAllReviews(reviewEntity repository.IReview) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		//username := jwt.GetUsername(ctx)
+		review, code, err := reviewEntity.GetOneById(id)
+		response := map[string]interface{}{
+			"review": review,
+			"error":  err,
+		}
+		ctx.JSON(code, response)
+	}
 }
 
 // GetReviewById godoc
@@ -27,15 +50,36 @@ func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 // @Description Get review by id
 // @Accept  json
 // @Produce  json
-// @Security ApiKeyAuth
 // @Param id path string true "Review ID"
 // @Success 200 {object} model.Review
 // @Router /reviews/{id} [get]
-func getAllReviews(reviewEntity repository.IReview) func(ctx *gin.Context) {
+func getReviewById(reviewEntity repository.IReview) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id := ctx.Param("id")
 		//username := jwt.GetUsername(ctx)
 		review, code, err := reviewEntity.GetOneById(id)
+		response := map[string]interface{}{
+			"review": review,
+			"error":  err,
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// GetAllReviewsByBook godoc
+// @Tags ReviewController
+// @Summary Get reviews by book
+// @Description Get reviews by book
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Review ID"
+// @Success 200 {array} form.ReviewResponse
+// @Router /reviews/{id}/book [get]
+func getAllReviewsByBook(reviewEntity repository.IReview) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		//username := jwt.GetUsername(ctx)
+		review, code, err := reviewEntity.GetByBookId(id)
 		response := map[string]interface{}{
 			"review": review,
 			"error":  err,

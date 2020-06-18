@@ -52,25 +52,12 @@ func getCategoryOfBook(book model.Book) []model.Category {
 	return categories
 }
 
-func getReviewsOfBook(book model.Book) ([]model.Review, float32) {
-	reviews, _, err := ReviewEntity.GetByBookId(book.Id.Hex())
+func getReviewsOfBook(book model.Book) *form.ReviewResponse {
+	reviewResp, _, err := ReviewEntity.GetByBookId(book.Id.Hex())
 	if err != nil {
-		return nil, 0
+		return nil
 	}
-	rating := calculateRating(reviews)
-	return reviews, rating
-}
-
-func calculateRating(reviews []model.Review) float32 {
-	if len(reviews) == 0 {
-		return 0
-	}
-	sum := 0
-	for _, review := range reviews {
-		sum = sum + review.Rating
-	}
-	rating := float32(sum) / float32(len(reviews))
-	return rating
+	return reviewResp
 }
 
 func (entity bookEntity) GetAll() ([]form.BookResponse, int, error) {
@@ -89,9 +76,11 @@ func (entity bookEntity) GetAll() ([]form.BookResponse, int, error) {
 		if err != nil {
 			logrus.Print(err)
 		}
+		reviewResp := getReviewsOfBook(book)
 		booksResp = append(booksResp, form.BookResponse{
 			Book:       &book,
-			Reviews:    nil,
+			//Reviews:    reviewResp.Reviews,
+			Rating:     reviewResp.AvgRating,
 			Categories: getCategoryOfBook(book),
 		})
 	}
@@ -162,11 +151,11 @@ func (entity bookEntity) GetOneByID(id string) (form.BookResponse, int, error) {
 		return form.BookResponse{}, getHTTPCode(err), err
 	}
 
-	reviews, rating := getReviewsOfBook(book)
+	reviewResp := getReviewsOfBook(book)
 	bookResp := form.BookResponse{
 		Book:       &book,
-		Reviews:    reviews,
-		Rating:     rating,
+		Reviews:    reviewResp.Reviews,
+		Rating:     reviewResp.AvgRating,
 		Categories: getCategoryOfBook(book),
 	}
 	return bookResp, http.StatusOK, nil
@@ -200,9 +189,12 @@ func (entity bookEntity) Search(keyword string) ([]form.BookResponse, int, error
 		if err != nil {
 			logrus.Print(err)
 		}
+
+		reviewResp := getReviewsOfBook(book)
 		booksResp = append(booksResp, form.BookResponse{
 			Book:       &book,
-			Reviews:    nil,
+			//Reviews:    reviewResp.Reviews,
+			Rating:     reviewResp.AvgRating,
 			Categories: getCategoryOfBook(book),
 		})
 	}
