@@ -1,12 +1,13 @@
 package app
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"libu/app/api"
 	"libu/middlewares"
 	"libu/my_db"
 	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type Routes struct {
@@ -36,5 +37,6 @@ func (app Routes) StartGin() {
 	api.ApplyBookAPI(publicRoute, resource)
 	api.ApplyUserAPI(publicRoute, resource)
 	api.ApplyReviewAPI(publicRoute, resource)
+	api.ApplyAuthorAPI(publicRoute, resource)
 	r.Run(":" + os.Getenv("PORT"))
 }
