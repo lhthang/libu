@@ -19,6 +19,7 @@ func ApplyAuthorAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	authorRoute.GET("", getAllAuthors(authorEntity))
 	authorRoute.GET("/:id", getAuthorById(authorEntity))
+	authorRoute.GET("/:id/books", getBooksByAuthorId(authorEntity))
 
 	authorRoute.Use(middlewares.RequireAuthenticated())
 	authorRoute.Use(middlewares.RequireAuthorization(constant.ADMIN))
@@ -68,6 +69,29 @@ func getAuthorById(authorEntity repository.IAuthor) func(ctx *gin.Context) {
 		response := map[string]interface{}{
 			"author": author,
 			"err":    err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// GetBooksByAuthorId godoc
+// @Tags AuthorController
+// @Summary Get books by author id
+// @Description Get books by author id
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Author ID"
+// @Success 200 {array} form.BookResponse
+// @Router /authors/{id}/books [get]
+func getBooksByAuthorId(authorEntity repository.IAuthor) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+
+		id := ctx.Param("id")
+		books, code, err := authorEntity.GetBooksByAuthorId(id)
+
+		response := map[string]interface{}{
+			"books": books,
+			"err":   err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}

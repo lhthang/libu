@@ -2,12 +2,6 @@ package repository
 
 import (
 	"errors"
-	"github.com/jinzhu/copier"
-	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"libu/app/form"
 	"libu/app/model"
 	"libu/my_db"
@@ -15,6 +9,13 @@ import (
 	"libu/utils/bcrypt"
 	"libu/utils/constant"
 	"net/http"
+
+	"github.com/jinzhu/copier"
+	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var UserEntity IUser
@@ -26,6 +27,7 @@ type userEntity struct {
 
 type IUser interface {
 	GetAll() ([]form.UserResponse, int, error)
+	GetOneById(id string) (*form.UserResponse, int, error)
 	GetOneByUsername(username string) (*model.User, int, error)
 	CreateOne(userForm form.User) (*model.User, int, error)
 	UpdateUser(username string, userForm form.UpdateInformation) (model.User, int, error)
@@ -62,7 +64,7 @@ func (entity *userEntity) GetAll() ([]form.UserResponse, int, error) {
 			Username:    user.Username,
 			FullName:    user.FullName,
 			FavoriteIds: user.FavoriteIds,
-			Roles: user.Roles,
+			Roles:       user.Roles,
 		})
 	}
 	return usersList, http.StatusOK, nil
@@ -74,7 +76,24 @@ func (entity *userEntity) GetOneByUsername(username string) (*model.User, int, e
 
 	var user model.User
 	err :=
-		entity.repo.FindOne(ctx, bson.M{"username": username}, ).Decode(&user)
+		entity.repo.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+
+	if err != nil {
+		logrus.Print(err)
+		return nil, 400, err
+	}
+
+	return &user, http.StatusOK, nil
+}
+
+func (entity *userEntity) GetOneById(id string) (*form.UserResponse, int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+
+	var user form.UserResponse
+	objID, _ := primitive.ObjectIDFromHex(id)
+	err :=
+		entity.repo.FindOne(ctx, bson.M{"_id": objID}).Decode(&user)
 
 	if err != nil {
 		logrus.Print(err)

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"libu/app/form"
 	"libu/app/repository"
 	"libu/middlewares"
@@ -11,6 +10,8 @@ import (
 	err2 "libu/utils/err"
 	"libu/utils/jwt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
@@ -22,6 +23,7 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	userRoute := app.Group("/users")
 	userRoute.GET("/get-all", getAllUSer(userEntity))
+	userRoute.GET("/get/:id", getUserById(userEntity))
 	userRoute.Use(middlewares.RequireAuthenticated())
 	userRoute.PUT("/update/:username", updateUser(userEntity))
 	userRoute.PUT("/favorites/:id", addFavorite(userEntity))
@@ -34,7 +36,7 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 func checkToken() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		token :=ctx.Param("token")
+		token := ctx.Param("token")
 		isValid := middlewares.ValidateToken(token)
 		response := map[string]interface{}{
 			"isValid": isValid,
@@ -107,6 +109,26 @@ func getAllUSer(userEntity repository.IUser) func(ctx *gin.Context) {
 		list, code, err := userEntity.GetAll()
 		response := map[string]interface{}{
 			"users": list,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// GetUserById godoc
+// @Tags UserController
+// @Summary Get user by Id
+// @Description Get user by Id
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} form.UserResponse
+// @Router /users/get/{id} [get]
+func getUserById(userEntity repository.IUser) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		user, code, err := userEntity.GetOneById(id)
+		response := map[string]interface{}{
+			"user":  user,
 			"error": err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)

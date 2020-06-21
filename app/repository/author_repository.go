@@ -24,6 +24,7 @@ type authorEntity struct {
 type IAuthor interface {
 	GetAll() ([]model.Author, int, error)
 	GetOneByID(id string) (*model.Author, int, error)
+	GetBooksByAuthorId(authorId string) ([]form.BookResponse, int, error)
 	CreateOne(authorForm form.AuthorForm) (model.Author, int, error)
 	Update(id string, authorForm form.AuthorForm) (model.Author, int, error)
 	Delete(id string) (model.Author, int, error)
@@ -73,6 +74,23 @@ func (entity *authorEntity) GetOneByID(id string) (*model.Author, int, error) {
 	}
 
 	return &author, http.StatusOK, nil
+}
+
+func (entity *authorEntity) GetBooksByAuthorId(authorId string) ([]form.BookResponse, int, error) {
+	allBooks, _, err := BookEntity.GetAll()
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+	var booksByAuthor []form.BookResponse
+	for _, book := range allBooks {
+		for _, author := range book.Authors {
+			if author.Id.Hex() == authorId {
+				booksByAuthor = append(booksByAuthor, book)
+				break
+			}
+		}
+	}
+	return booksByAuthor, http.StatusOK, nil
 }
 
 func (entity *authorEntity) CreateOne(authorForm form.AuthorForm) (model.Author, int, error) {

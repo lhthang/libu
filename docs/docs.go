@@ -210,6 +210,41 @@ var doc = `{
                 }
             }
         },
+        "/authors/{id}/books": {
+            "get": {
+                "description": "Get books by author id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AuthorController"
+                ],
+                "summary": "Get books by author id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Author ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/form.BookResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/books": {
             "get": {
                 "description": "Get all books",
@@ -950,6 +985,29 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/model.User"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/get/{id}": {
+            "get": {
+                "description": "Get user by Id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserController"
+                ],
+                "summary": "Get user by Id",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/form.UserResponse"
                         }
                     }
                 }
