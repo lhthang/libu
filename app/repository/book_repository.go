@@ -41,27 +41,37 @@ func NewBookEntity(resource *my_db.Resource) IBook {
 	return BookEntity
 }
 
-func getCategoryOfBook(book model.Book) []model.Category {
+func getCategoryOfBook(book *model.Book) []model.Category {
 	var categories []model.Category
+	var validCategoryIds []string
 	for _, id := range book.CategoryIds {
 		category, _, err := CategoryEntity.GetOneByID(id)
 		if err != nil || category == nil {
+			if category != nil {
+				validCategoryIds = append(validCategoryIds, id)
+			}
 			continue
 		}
 		categories = append(categories, *category)
 	}
+	book.CategoryIds = validCategoryIds
 	return categories
 }
 
-func getAuthorsOfBook(book model.Book) []model.Author {
+func getAuthorsOfBook(book *model.Book) []model.Author {
 	var authors []model.Author
+	var validAuthorIds []string
 	for _, id := range book.AuthorIds {
 		author, _, err := AuthorEntity.GetOneByID(id)
 		if err != nil || author == nil {
+			if author != nil {
+				validAuthorIds = append(validAuthorIds, id)
+			}
 			continue
 		}
 		authors = append(authors, *author)
 	}
+	book.AuthorIds = validAuthorIds
 	return authors
 }
 
@@ -94,8 +104,8 @@ func (entity bookEntity) GetAll() ([]form.BookResponse, int, error) {
 			Book: &book,
 			//Reviews:    reviewResp.Reviews,
 			Rating:     reviewResp.AvgRating,
-			Categories: getCategoryOfBook(book),
-			Authors:    getAuthorsOfBook(book),
+			Categories: getCategoryOfBook(&book),
+			Authors:    getAuthorsOfBook(&book),
 		})
 	}
 	return booksResp, http.StatusOK, nil
@@ -155,8 +165,8 @@ func (entity bookEntity) Create(bookForm form.BookForm) (form.BookResponse, int,
 	bookResp := form.BookResponse{
 		Book:       &book,
 		Reviews:    nil,
-		Categories: getCategoryOfBook(book),
-		Authors:    getAuthorsOfBook(book),
+		Categories: getCategoryOfBook(&book),
+		Authors:    getAuthorsOfBook(&book),
 	}
 	return bookResp, http.StatusOK, nil
 }
@@ -179,8 +189,8 @@ func (entity bookEntity) GetOneByID(id string) (form.BookResponse, int, error) {
 		Book:       &book,
 		Reviews:    reviewResp.Reviews,
 		Rating:     reviewResp.AvgRating,
-		Categories: getCategoryOfBook(book),
-		Authors:    getAuthorsOfBook(book),
+		Categories: getCategoryOfBook(&book),
+		Authors:    getAuthorsOfBook(&book),
 	}
 	return bookResp, http.StatusOK, nil
 }
@@ -220,8 +230,8 @@ func (entity bookEntity) Search(keyword string) ([]form.BookResponse, int, error
 			Book: &book,
 			//Reviews:    reviewResp.Reviews,
 			Rating:     reviewResp.AvgRating,
-			Categories: getCategoryOfBook(book),
-			Authors:    getAuthorsOfBook(book),
+			Categories: getCategoryOfBook(&book),
+			Authors:    getAuthorsOfBook(&book),
 		})
 	}
 	return booksResp, http.StatusOK, nil
@@ -287,8 +297,8 @@ func (entity bookEntity) Update(id string, bookForm form.UpdateBookForm) (form.B
 	newBookResp := form.BookResponse{
 		Book:       &updatedBook,
 		Reviews:    bookResp.Reviews,
-		Categories: getCategoryOfBook(updatedBook),
-		Authors:    getAuthorsOfBook(updatedBook),
+		Categories: getCategoryOfBook(&updatedBook),
+		Authors:    getAuthorsOfBook(&updatedBook),
 		Rating:     bookResp.Rating,
 	}
 	return newBookResp, http.StatusOK, nil
