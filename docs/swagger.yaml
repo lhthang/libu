@@ -1,8 +1,20 @@
 basePath: /api/v1
 definitions:
+  form.AuthorForm:
+    properties:
+      about:
+        type: string
+      name:
+        description: Id       string `json:"id"`
+        type: string
+      photoUrl:
+        type: string
+    required:
+    - name
+    type: object
   form.BookForm:
     properties:
-      authors:
+      authorIds:
         items:
           type: string
         type: array
@@ -30,9 +42,13 @@ definitions:
     type: object
   form.BookResponse:
     properties:
-      authors:
+      authorIds:
         items:
           type: string
+        type: array
+      authors:
+        items:
+          $ref: '#/definitions/model.Author'
         type: array
       categories:
         items:
@@ -98,7 +114,7 @@ definitions:
     type: object
   form.UpdateBookForm:
     properties:
-      authors:
+      authorIds:
         items:
           type: string
         type: array
@@ -173,6 +189,17 @@ definitions:
       username:
         type: string
     type: object
+  model.Author:
+    properties:
+      about:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      photoURL:
+        type: string
+    type: object
   model.Category:
     properties:
       id:
@@ -228,6 +255,142 @@ info:
   title: UIT-Libray API
   version: "1.0"
 paths:
+  /authors:
+    get:
+      consumes:
+      - application/json
+      description: Get all authors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Author'
+            type: array
+      summary: Get all authors
+      tags:
+      - AuthorController
+    post:
+      consumes:
+      - application/json
+      description: Create author
+      parameters:
+      - description: Author
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/form.AuthorForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Author'
+      security:
+      - ApiKeyAuth: []
+      summary: Create author
+      tags:
+      - AuthorController
+  /authors/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete author
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Author'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete author
+      tags:
+      - AuthorController
+    get:
+      consumes:
+      - application/json
+      description: Get author by id
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Author'
+            type: array
+      summary: Get author by id
+      tags:
+      - AuthorController
+    put:
+      consumes:
+      - application/json
+      description: Update author
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: AuthorForm
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/form.AuthorForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Author'
+      security:
+      - ApiKeyAuth: []
+      summary: Update author
+      tags:
+      - AuthorController
+  /authors/{id}/books:
+    get:
+      consumes:
+      - application/json
+      description: Get books by author id
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/form.BookResponse'
+            type: array
+      summary: Get books by author id
+      tags:
+      - AuthorController
   /books:
     get:
       consumes:
@@ -361,7 +524,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/string'
+            type: string
       security:
       - ApiKeyAuth: []
       summary: Upload file
@@ -700,6 +863,21 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Add favorite book
+      tags:
+      - UserController
+  /users/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user by Id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.UserResponse'
+      summary: Get user by Id
       tags:
       - UserController
   /users/update-roles:

@@ -1,6 +1,12 @@
 package repository
 
 import (
+	"libu/app/form"
+	"libu/app/model"
+	"libu/my_db"
+	"libu/utils/firebase"
+	"net/http"
+
 	"github.com/araddon/dateparse"
 	"github.com/jinzhu/copier"
 	"github.com/sirupsen/logrus"
@@ -8,11 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"libu/app/form"
-	"libu/app/model"
-	"libu/my_db"
-	"libu/utils/firebase"
-	"net/http"
 )
 
 var BookEntity IBook
@@ -40,16 +41,38 @@ func NewBookEntity(resource *my_db.Resource) IBook {
 	return BookEntity
 }
 
-func getCategoryOfBook(book model.Book) []model.Category {
+func getCategoryOfBook(book *model.Book) []model.Category {
 	var categories []model.Category
+	var validCategoryIds []string
 	for _, id := range book.CategoryIds {
 		category, _, err := CategoryEntity.GetOneByID(id)
 		if err != nil || category == nil {
+			if category != nil {
+				validCategoryIds = append(validCategoryIds, id)
+			}
 			continue
 		}
 		categories = append(categories, *category)
 	}
+	book.CategoryIds = validCategoryIds
 	return categories
+}
+
+func getAuthorsOfBook(book *model.Book) []model.Author {
+	var authors []model.Author
+	var validAuthorIds []string
+	for _, id := range book.AuthorIds {
+		author, _, err := AuthorEntity.GetOneByID(id)
+		if err != nil || author == nil {
+			if author != nil {
+				validAuthorIds = append(validAuthorIds, id)
+			}
+			continue
+		}
+		authors = append(authors, *author)
+	}
+	book.AuthorIds = validAuthorIds
+	return authors
 }
 
 func getReviewsOfBook(book model.Book) *form.ReviewResponse {
@@ -78,10 +101,11 @@ func (entity bookEntity) GetAll() ([]form.BookResponse, int, error) {
 		}
 		reviewResp := getReviewsOfBook(book)
 		booksResp = append(booksResp, form.BookResponse{
-			Book:       &book,
+			Book: &book,
 			//Reviews:    reviewResp.Reviews,
 			Rating:     reviewResp.AvgRating,
-			Categories: getCategoryOfBook(book),
+			Categories: getCategoryOfBook(&book),
+			Authors:    getAuthorsOfBook(&book),
 		})
 	}
 	return booksResp, http.StatusOK, nil
@@ -103,11 +127,19 @@ func (entity bookEntity) Create(bookForm form.BookForm) (form.BookResponse, int,
 			categoryIds = append(categoryIds, id)
 		}
 	}
+	var authorIds []string
+	for _, id := range bookForm.AuthorIds {
+		author, _, _ := AuthorEntity.GetOneByID(id)
+		if author != nil {
+			authorIds = append(authorIds, id)
+		}
+	}
 	book := model.Book{
-		Id:          primitive.NewObjectID(),
-		ReleaseAt:   releaseAt,
-		Title:       bookForm.Title,
-		Authors:     bookForm.Authors,
+		Id:        primitive.NewObjectID(),
+		ReleaseAt: releaseAt,
+		Title:     bookForm.Title,
+		// Authors:     bookForm.Authors,
+		AuthorIds:   authorIds,
 		Publisher:   bookForm.Publisher,
 		CategoryIds: categoryIds,
 		Image:       bookForm.Image,
@@ -133,7 +165,8 @@ func (entity bookEntity) Create(bookForm form.BookForm) (form.BookResponse, int,
 	bookResp := form.BookResponse{
 		Book:       &book,
 		Reviews:    nil,
-		Categories: getCategoryOfBook(book),
+		Categories: getCategoryOfBook(&book),
+		Authors:    getAuthorsOfBook(&book),
 	}
 	return bookResp, http.StatusOK, nil
 }
@@ -156,7 +189,8 @@ func (entity bookEntity) GetOneByID(id string) (form.BookResponse, int, error) {
 		Book:       &book,
 		Reviews:    reviewResp.Reviews,
 		Rating:     reviewResp.AvgRating,
-		Categories: getCategoryOfBook(book),
+		Categories: getCategoryOfBook(&book),
+		Authors:    getAuthorsOfBook(&book),
 	}
 	return bookResp, http.StatusOK, nil
 }
@@ -169,14 +203,15 @@ func (entity bookEntity) Search(keyword string) ([]form.BookResponse, int, error
 
 	title := map[string]interface{}{}
 	description := map[string]interface{}{}
-	author := map[string]interface{}{}
+	// author := map[string]interface{}{}
 	publisher := map[string]interface{}{}
 	title["title"] = bson.M{"$regex": keyword, "$options": "i"}
 	description["description"] = bson.M{"$regex": keyword, "$options": "i"}
-	author["authors"] = bson.M{"$regex": keyword, "$options": "i"}
+	// author["authors"] = bson.M{"$regex": keyword, "$options": "i"}
 	publisher["publisher"] = bson.M{"$regex": keyword, "$options": "i"}
 	query := map[string]interface{}{}
-	query["$or"] = []interface{}{title, description, author, publisher}
+	// query["$or"] = []interface{}{title, description, author, publisher}
+	query["$or"] = []interface{}{title, description, publisher}
 
 	cursor, err := entity.repo.Find(ctx, query)
 	if err != nil {
@@ -192,10 +227,11 @@ func (entity bookEntity) Search(keyword string) ([]form.BookResponse, int, error
 
 		reviewResp := getReviewsOfBook(book)
 		booksResp = append(booksResp, form.BookResponse{
-			Book:       &book,
+			Book: &book,
 			//Reviews:    reviewResp.Reviews,
 			Rating:     reviewResp.AvgRating,
-			Categories: getCategoryOfBook(book),
+			Categories: getCategoryOfBook(&book),
+			Authors:    getAuthorsOfBook(&book),
 		})
 	}
 	return booksResp, http.StatusOK, nil
@@ -238,6 +274,14 @@ func (entity bookEntity) Update(id string, bookForm form.UpdateBookForm) (form.B
 		}
 	}
 	bookForm.CategoryIds = categoryIds
+	var authorIds []string
+	for _, id := range bookForm.AuthorIds {
+		author, _, _ := AuthorEntity.GetOneByID(id)
+		if author != nil {
+			authorIds = append(authorIds, id)
+		}
+	}
+	bookForm.AuthorIds = authorIds
 	err = copier.Copy(bookResp.Book, bookForm)
 	if err != nil {
 		return form.BookResponse{}, getHTTPCode(err), err
@@ -253,7 +297,8 @@ func (entity bookEntity) Update(id string, bookForm form.UpdateBookForm) (form.B
 	newBookResp := form.BookResponse{
 		Book:       &updatedBook,
 		Reviews:    bookResp.Reviews,
-		Categories: getCategoryOfBook(updatedBook),
+		Categories: getCategoryOfBook(&updatedBook),
+		Authors:    getAuthorsOfBook(&updatedBook),
 		Rating:     bookResp.Rating,
 	}
 	return newBookResp, http.StatusOK, nil
