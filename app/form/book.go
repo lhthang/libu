@@ -11,7 +11,7 @@ type BookForm struct {
 	CategoryIds []string              `form:"categoryIds,omitempty"`
 	Authors     []string              `form:"authors,omitempty"`
 	Publisher   string                `form:"publisher,omitempty"`
-	Image       string                `form:"image"  binding:"required"`
+	Image       string                `form:"image"`
 	Description string                `form:"description,omitempty"`
 	Link        string                `form:"link,omitempty"`
 	File        *multipart.FileHeader `form:"file,omitempty"`

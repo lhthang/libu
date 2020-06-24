@@ -10,6 +10,12 @@ type ReviewForm struct {
 	Rating   int    `json:"rating" binding:"oneof=1 2 3 4 5"`
 }
 
+type ReviewResp struct {
+	*model.Review
+	UpvoteCount int `json:"upvoteCount"`
+	ReportCount int `json:"reportCount"`
+}
+
 type ReviewResponse struct {
 	Reviews   []model.Review `json:"reviews"`
 	AvgRating float32        `json:"avgRating"`

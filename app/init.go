@@ -36,5 +36,7 @@ func (app Routes) StartGin() {
 	api.ApplyBookAPI(publicRoute, resource)
 	api.ApplyUserAPI(publicRoute, resource)
 	api.ApplyReviewAPI(publicRoute, resource)
+	api.ApplyAuthorAPI(publicRoute, resource)
+	api.ApplyReportAPI(publicRoute,resource)
 	r.Run(":" + os.Getenv("PORT"))
 }
