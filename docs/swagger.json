@@ -678,6 +678,14 @@
                     "ReviewController"
                 ],
                 "summary": "Get all reviews",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Report",
+                        "name": "report",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

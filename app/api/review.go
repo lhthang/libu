@@ -9,6 +9,7 @@ import (
 	err2 "libu/utils/err"
 	"libu/utils/jwt"
 	"net/http"
+	"strconv"
 )
 
 func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
@@ -31,12 +32,17 @@ func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 // @Description Get all reviews
 // @Accept  json
 // @Produce  json
+// @Param report query int false "Report"
 // @Success 200 {array} model.Review
 // @Router /reviews [get]
 func getAllReviews(reviewEntity repository.IReview) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
-		review, code, err := reviewEntity.GetAll()
+		report, err := strconv.ParseInt(ctx.Query("report"), 10, 64)
+		if err != nil {
+			report = 0
+		}
+		review, code, err := reviewEntity.GetAll(report)
 		response := map[string]interface{}{
 			"review": review,
 			"error":  err2.GetErrorMessage(err),

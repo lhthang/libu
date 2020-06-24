@@ -22,6 +22,7 @@ type reportEntity struct {
 type IReport interface {
 	CreateOne(reportForm form.ReportForm, username string) (model.Report, int, error)
 	GetByReviewId(id string) ([]model.Report, int, error)
+	DeleteByReviewId(id string) ([]model.Report,int,error)
 }
 
 func NewReportEntity(resource *my_db.Resource) IReport {
@@ -75,6 +76,19 @@ func (entity *reportEntity) GetByReviewId(id string) ([]model.Report, int, error
 			logrus.Print(err)
 		}
 		reports = append(reports, report)
+	}
+	return reports, http.StatusOK, nil
+}
+
+func (entity *reportEntity) DeleteByReviewId(id string) ([]model.Report, int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+
+	var reports []model.Report
+
+	_,err := entity.repo.DeleteMany(ctx, bson.M{"reviewId": id})
+	if err != nil {
+		return reports, http.StatusBadRequest, err
 	}
 	return reports, http.StatusOK, nil
 }

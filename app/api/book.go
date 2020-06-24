@@ -19,6 +19,7 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	bookRoute := app.Group("books")
 	bookRoute.GET("", getAllBooks(bookEntity))
 	bookRoute.GET("/:id", getBookById(bookEntity))
+	bookRoute.GET("/:id/similar", getSimilarBooks(bookEntity))
 	bookRoute.Use(middlewares.RequireAuthenticated())
 	bookRoute.Use(middlewares.RequireAuthorization(constant.ADMIN))
 	bookRoute.POST("", createBook(bookEntity))
@@ -109,6 +110,28 @@ func getBookById(entity repository.IBook) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id := ctx.Param("id")
 		book, code, err := entity.GetOneByID(id)
+
+		response := map[string]interface{}{
+			"book":  book,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// GetSimilarBooks godoc
+// @Tags BookController
+// @Summary Get similar books
+// @Description Get similar books
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Book ID"
+// @Success 200 {array} form.BookResponse
+// @Router /books/{id}/similar [get]
+func getSimilarBooks(entity repository.IBook) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		book, code, err := entity.GetSimilarBooks(id)
 
 		response := map[string]interface{}{
 			"book":  book,

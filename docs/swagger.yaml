@@ -729,6 +729,11 @@ paths:
       consumes:
       - application/json
       description: Get all reviews
+      parameters:
+      - description: Report
+        in: query
+        name: report
+        type: integer
       produces:
       - application/json
       responses:

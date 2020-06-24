@@ -24,6 +24,7 @@ type bookEntity struct {
 }
 
 type IBook interface {
+	GetSimilarBooks(id string) ([]form.BookResponse, int, error)
 	GetAll() ([]form.BookResponse, int, error)
 	Search(keyword string) ([]form.BookResponse, int, error)
 	Create(bookForm form.BookForm) (form.BookResponse, int, error)
@@ -46,12 +47,10 @@ func getCategoryOfBook(book *model.Book) []model.Category {
 	var validCategoryIds []string
 	for _, id := range book.CategoryIds {
 		category, _, err := CategoryEntity.GetOneByID(id)
-		if err != nil || category == nil {
-			if category != nil {
-				validCategoryIds = append(validCategoryIds, id)
-			}
+		if err != nil  {
 			continue
 		}
+		validCategoryIds = append(validCategoryIds, id)
 		categories = append(categories, *category)
 	}
 	book.CategoryIds = validCategoryIds
@@ -63,12 +62,10 @@ func getAuthorsOfBook(book *model.Book) []model.Author {
 	var validAuthorIds []string
 	for _, id := range book.AuthorIds {
 		author, _, err := AuthorEntity.GetOneByID(id)
-		if err != nil || author == nil {
-			if author != nil {
-				validAuthorIds = append(validAuthorIds, id)
-			}
+		if err != nil {
 			continue
 		}
+		validAuthorIds = append(validAuthorIds, id)
 		authors = append(authors, *author)
 	}
 	book.AuthorIds = validAuthorIds
@@ -107,6 +104,48 @@ func (entity bookEntity) GetAll() ([]form.BookResponse, int, error) {
 			Categories: getCategoryOfBook(&book),
 			Authors:    getAuthorsOfBook(&book),
 		})
+	}
+	return booksResp, http.StatusOK, nil
+}
+
+func (entity bookEntity) GetSimilarBooks(id string) ([]form.BookResponse, int, error) {
+	ctx, cancel := initContext()
+
+	defer cancel()
+	var booksResp []form.BookResponse
+
+	book, _, err := entity.GetOneByID(id)
+	if err != nil {
+		return []form.BookResponse{}, http.StatusBadRequest, err
+	}
+	logrus.Printf("%v",book.Book)
+
+	ct :=[]string{}
+	for _,category :=range book.CategoryIds{
+		ct = append(ct,category)
+	}
+	logrus.Println(ct)
+	cursor, err := entity.repo.Find(ctx, bson.M{"categoryIds": ct})
+	if err != nil {
+		return []form.BookResponse{}, http.StatusBadRequest, err
+	}
+	for cursor.Next(ctx) {
+		var book model.Book
+		err := cursor.Decode(&book)
+		if err != nil {
+			logrus.Println(err)
+			continue
+		}
+
+		reviewResp := getReviewsOfBook(book)
+		bookResp := form.BookResponse{
+			Book:       &book,
+			Reviews:    reviewResp.ReviewResp,
+			Rating:     reviewResp.AvgRating,
+			Categories: getCategoryOfBook(&book),
+			Authors:    getAuthorsOfBook(&book),
+		}
+		booksResp = append(booksResp, bookResp)
 	}
 	return booksResp, http.StatusOK, nil
 }
@@ -185,6 +224,7 @@ func (entity bookEntity) GetOneByID(id string) (form.BookResponse, int, error) {
 	}
 
 	reviewResp := getReviewsOfBook(book)
+	logrus.Println(book.CategoryIds)
 	bookResp := form.BookResponse{
 		Book:       &book,
 		Reviews:    reviewResp.ReviewResp,

@@ -24,7 +24,7 @@ type reviewEntity struct {
 }
 
 type IReview interface {
-	GetAll() ([]form.ReviewResp,int,error)
+	GetAll(report int64) ([]form.ReviewResp,int,error)
 	GetOneById(id string) (form.ReviewResp, int, error)
 	GetByBookId(bookId string) (*form.ReviewResponse, int, error)
 	Create(reviewForm form.ReviewForm) (model.Review, int, error)
@@ -50,7 +50,7 @@ func getReportsOfReview(review model.Review) []model.Report {
 	return reports
 }
 
-func (entity *reviewEntity) GetAll() ([]form.ReviewResp, int, error) {
+func (entity *reviewEntity) GetAll(report int64) ([]form.ReviewResp, int, error) {
 	ctx, cancel := initContext()
 	defer cancel()
 
@@ -77,7 +77,9 @@ func (entity *reviewEntity) GetAll() ([]form.ReviewResp, int, error) {
 			UpvoteCount: len(review.Upvotes),
 			ReportCount: len(reports),
 		}
-		reviews = append(reviews,reviewResp)
+		if int64(len(reports))>=report {
+			reviews = append(reviews, reviewResp)
+		}
 	}
 
 
@@ -196,6 +198,8 @@ func (entity *reviewEntity) Delete(id, username string) (model.Review, int, erro
 	if err != nil {
 		return model.Review{}, http.StatusBadRequest, err
 	}
+
+	_,_,_=ReportEntity.DeleteByReviewId(id)
 
 	return *review.Review, http.StatusOK, nil
 }
