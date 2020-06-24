@@ -1,5 +1,10 @@
 basePath: /api/v1
 definitions:
+  form.ActionForm:
+    properties:
+      action:
+        type: string
+    type: object
   form.AuthorForm:
     properties:
       about:
@@ -37,7 +42,6 @@ definitions:
       title:
         type: string
     required:
-    - image
     - title
     type: object
   form.BookResponse:
@@ -74,7 +78,7 @@ definitions:
         type: string
       reviews:
         items:
-          $ref: '#/definitions/model.Review'
+          $ref: '#/definitions/form.ReviewResp'
         type: array
       title:
         type: string
@@ -87,6 +91,15 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  form.ReportForm:
+    properties:
+      reason:
+        type: string
+      reviewId:
+        type: string
+    required:
+    - reviewId
     type: object
   form.ReviewForm:
     properties:
@@ -103,13 +116,40 @@ definitions:
     required:
     - bookId
     type: object
+  form.ReviewResp:
+    properties:
+      bookId:
+        type: string
+      comment:
+        type: string
+      id:
+        type: string
+      rating:
+        type: integer
+      reportCount:
+        type: integer
+      reports:
+        items:
+          $ref: '#/definitions/model.Report'
+        type: array
+      updateAt:
+        type: string
+      upvoteCount:
+        type: integer
+      upvotes:
+        items:
+          type: string
+        type: array
+      username:
+        type: string
+    type: object
   form.ReviewResponse:
     properties:
       avgRating:
         type: number
       reviews:
         items:
-          $ref: '#/definitions/model.Review'
+          $ref: '#/definitions/form.ReviewResp'
         type: array
     type: object
   form.UpdateBookForm:
@@ -207,6 +247,19 @@ definitions:
       name:
         type: string
     type: object
+  model.Report:
+    properties:
+      createAt:
+        type: string
+      id:
+        type: string
+      reason:
+        type: string
+      reviewId:
+        type: string
+      username:
+        type: string
+    type: object
   model.Review:
     properties:
       bookId:
@@ -219,6 +272,10 @@ definitions:
         type: integer
       updateAt:
         type: string
+      upvotes:
+        items:
+          type: string
+        type: array
       username:
         type: string
     type: object
@@ -524,7 +581,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/string'
       security:
       - ApiKeyAuth: []
       summary: Upload file
@@ -643,6 +700,30 @@ paths:
       summary: Update category
       tags:
       - CategoryController
+  /reports:
+    post:
+      consumes:
+      - application/json
+      description: Create report
+      parameters:
+      - description: Report
+        in: body
+        name: report
+        required: true
+        schema:
+          $ref: '#/definitions/form.ReportForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Review'
+      security:
+      - ApiKeyAuth: []
+      summary: Create report
+      tags:
+      - ReportController
   /reviews:
     get:
       consumes:
@@ -754,6 +835,35 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update review
+      tags:
+      - ReviewController
+  /reviews/{id}/action:
+    post:
+      consumes:
+      - application/json
+      description: Vote review
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Action
+        in: body
+        name: action
+        required: true
+        schema:
+          $ref: '#/definitions/form.ActionForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Review'
+      security:
+      - ApiKeyAuth: []
+      summary: Vote review
       tags:
       - ReviewController
   /reviews/{id}/book:

@@ -187,7 +187,7 @@ func (entity bookEntity) GetOneByID(id string) (form.BookResponse, int, error) {
 	reviewResp := getReviewsOfBook(book)
 	bookResp := form.BookResponse{
 		Book:       &book,
-		Reviews:    reviewResp.Reviews,
+		Reviews:    reviewResp.ReviewResp,
 		Rating:     reviewResp.AvgRating,
 		Categories: getCategoryOfBook(&book),
 		Authors:    getAuthorsOfBook(&book),

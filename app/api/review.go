@@ -6,6 +6,7 @@ import (
 	"libu/app/repository"
 	"libu/middlewares"
 	"libu/my_db"
+	err2 "libu/utils/err"
 	"libu/utils/jwt"
 	"net/http"
 )
@@ -19,6 +20,7 @@ func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	reviewRoute.GET("/:id/book", getAllReviewsByBook(reviewEntity))
 	reviewRoute.Use(middlewares.RequireAuthenticated())
 	reviewRoute.POST("", createReview(reviewEntity))
+	reviewRoute.POST("/:id/action", upvoteReview(reviewEntity))
 	reviewRoute.PUT("/:id", updateReview(reviewEntity))
 	reviewRoute.DELETE("/:id", deleteReview(reviewEntity))
 }
@@ -33,12 +35,11 @@ func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 // @Router /reviews [get]
 func getAllReviews(reviewEntity repository.IReview) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		id := ctx.Param("id")
-		//username := jwt.GetUsername(ctx)
-		review, code, err := reviewEntity.GetOneById(id)
+
+		review, code, err := reviewEntity.GetAll()
 		response := map[string]interface{}{
 			"review": review,
-			"error":  err,
+			"error":  err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}
@@ -60,7 +61,7 @@ func getReviewById(reviewEntity repository.IReview) func(ctx *gin.Context) {
 		review, code, err := reviewEntity.GetOneById(id)
 		response := map[string]interface{}{
 			"review": review,
-			"error":  err,
+			"error":  err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}
@@ -82,7 +83,7 @@ func getAllReviewsByBook(reviewEntity repository.IReview) func(ctx *gin.Context)
 		review, code, err := reviewEntity.GetByBookId(id)
 		response := map[string]interface{}{
 			"review": review,
-			"error":  err,
+			"error":  err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}
@@ -112,7 +113,7 @@ func createReview(reviewEntity repository.IReview) func(ctx *gin.Context) {
 		review, code, err := reviewEntity.Create(reviewForm)
 		response := map[string]interface{}{
 			"review": review,
-			"error":  err,
+			"error":  err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}
@@ -144,7 +145,7 @@ func updateReview(reviewEntity repository.IReview) func(ctx *gin.Context) {
 		review, code, err := reviewEntity.Update(id, username, reviewForm)
 		response := map[string]interface{}{
 			"review": review,
-			"error":  err,
+			"error":  err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}
@@ -169,7 +170,38 @@ func deleteReview(reviewEntity repository.IReview) func(ctx *gin.Context) {
 		review, code, err := reviewEntity.Delete(id, username)
 		response := map[string]interface{}{
 			"review": review,
-			"error":  err,
+			"error":  err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// VoteReview godoc
+// @Tags ReviewController
+// @Summary Vote review
+// @Description Vote review
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id path string true "Review ID"
+// @Param action body form.ActionForm true "Action"
+// @Success 200 {object} model.Review
+// @Router /reviews/{id}/action [post]
+func upvoteReview(reviewEntity repository.IReview) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id:=ctx.Param("id")
+		username := jwt.GetUsername(ctx)
+
+		actionForm := form.ActionForm{}
+		if err := ctx.Bind(&actionForm); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+			return
+		}
+
+		review, code, err := reviewEntity.Upvote(id,username,actionForm.Action)
+		response := map[string]interface{}{
+			"review": review,
+			"error":  err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}

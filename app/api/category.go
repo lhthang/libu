@@ -8,7 +8,6 @@ import (
 	"libu/middlewares"
 	"libu/my_db"
 	"libu/utils/constant"
-	err2 "libu/utils/err"
 	"net/http"
 )
 
@@ -43,7 +42,7 @@ func getAllCategories(categoryEntity repository.ICategory) func(ctx *gin.Context
 		}
 		response := map[string]interface{}{
 			"categories": categories,
-			"err":        err2.GetErrorMessage(err),
+			"err":        err.Error(),
 		}
 		ctx.JSON(code, response)
 	}
@@ -66,7 +65,7 @@ func getCategoryById(categoryEntity repository.ICategory) func(ctx *gin.Context)
 
 		response := map[string]interface{}{
 			"category": category,
-			"err":      err2.GetErrorMessage(err),
+			"err":      err.Error(),
 		}
 		ctx.JSON(code, response)
 	}
@@ -94,7 +93,7 @@ func createCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 
 		response := map[string]interface{}{
 			"category": category,
-			"err":      err2.GetErrorMessage(err),
+			"err":      err.Error(),
 		}
 		ctx.JSON(code, response)
 	}
@@ -123,7 +122,7 @@ func updateCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 		category, code, err := categoryEntity.Update(id, categoryForm)
 		response := map[string]interface{}{
 			"category": category,
-			"err":      err2.GetErrorMessage(err),
+			"err":      err.Error(),
 		}
 		ctx.JSON(code, response)
 	}
@@ -146,7 +145,7 @@ func deleteCategory(categoryEntity repository.ICategory) func(ctx *gin.Context) 
 		category, code, err := categoryEntity.Delete(id)
 		response := map[string]interface{}{
 			"category": category,
-			"err":      err2.GetErrorMessage(err),
+			"err":      err.Error(),
 		}
 		ctx.JSON(code, response)
 	}

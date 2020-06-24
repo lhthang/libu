@@ -20,7 +20,7 @@ type BookForm struct {
 
 type BookResponse struct {
 	*model.Book
-	Reviews    []model.Review   `json:"reviews,omitempty"`
+	Reviews    []ReviewResp  `json:"reviews,omitempty"`
 	Categories []model.Category `json:"categories,omitempty"`
 	Authors    []model.Author   `json:"authors,omitempty"`
 	Rating     float32          `json:"rating"`

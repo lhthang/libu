@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"libu/app/form"
 	"libu/app/repository"
 	"libu/middlewares"
@@ -20,6 +19,17 @@ func ApplyReportAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	reportRoute.POST("", createReport(reportEntity))
 }
 
+
+// CreateReport godoc
+// @Tags ReportController
+// @Summary Create report
+// @Description Create report
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param report body form.ReportForm true "Report"
+// @Success 200 {object} model.Review
+// @Router /reports [post]
 func createReport(reportEntity repository.IReport) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 
@@ -31,7 +41,6 @@ func createReport(reportEntity repository.IReport) func(ctx *gin.Context) {
 		username := jwt.GetUsername(ctx)
 
 		report, code, err := reportEntity.CreateOne(reportForm,username)
-		logrus.Print("heeeeee")
 		response := map[string]interface{}{
 			"report": report,
 			"err":    err2.GetErrorMessage(err),

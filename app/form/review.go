@@ -10,13 +10,18 @@ type ReviewForm struct {
 	Rating   int    `json:"rating" binding:"oneof=1 2 3 4 5"`
 }
 
+type ActionForm struct {
+	Action string `json:"action" binding:"oneof= upvote unvote"`
+}
+
 type ReviewResp struct {
 	*model.Review
-	UpvoteCount int `json:"upvoteCount"`
-	ReportCount int `json:"reportCount"`
+	Reports     []model.Report `json:"reports"`
+	UpvoteCount int            `json:"upvoteCount"`
+	ReportCount int            `json:"reportCount"`
 }
 
 type ReviewResponse struct {
-	Reviews   []model.Review `json:"reviews"`
-	AvgRating float32        `json:"avgRating"`
+	ReviewResp []ReviewResp `json:"reviews"`
+	AvgRating  float32      `json:"avgRating"`
 }
