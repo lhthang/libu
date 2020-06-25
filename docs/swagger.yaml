@@ -564,6 +564,29 @@ paths:
       summary: Update book by id
       tags:
       - BookController
+  /books/{id}/similar:
+    get:
+      consumes:
+      - application/json
+      description: Get similar books
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/form.BookResponse'
+            type: array
+      summary: Get similar books
+      tags:
+      - BookController
   /books/upload:
     post:
       consumes:
