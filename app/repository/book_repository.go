@@ -4,8 +4,10 @@ import (
 	"libu/app/form"
 	"libu/app/model"
 	"libu/my_db"
+	"libu/utils/arrays"
 	"libu/utils/firebase"
 	"net/http"
+	"sync"
 
 	"github.com/araddon/dateparse"
 	"github.com/jinzhu/copier"
@@ -21,6 +23,11 @@ var BookEntity IBook
 type bookEntity struct {
 	resource *my_db.Resource
 	repo     *mongo.Collection
+}
+
+type BookChan struct {
+	Ids []string
+	Err error
 }
 
 type IBook interface {
@@ -112,40 +119,98 @@ func (entity bookEntity) GetSimilarBooks(id string) ([]form.BookResponse, int, e
 	ctx, cancel := initContext()
 
 	defer cancel()
+
+
 	var booksResp []form.BookResponse
 
 	book, _, err := entity.GetOneByID(id)
 	if err != nil {
 		return []form.BookResponse{}, http.StatusBadRequest, err
 	}
-	logrus.Printf("%v",book.Book)
 
-	ct :=[]string{}
-	for _,category :=range book.CategoryIds{
-		ct = append(ct,category)
+	pipelineCategories :=[]bson.M{{"$unwind": bson.M{"path":"$categoryIds"}},
+		{"$match":bson.M{"categoryIds":bson.M{"$in":book.CategoryIds}}},
+		{"$group":bson.M{"_id":"$_id","total":bson.M{"$sum":1}}},
+		{"$sort": bson.M{"total": -1}},
+		}
+
+	pipelineAuthors :=[]bson.M{{"$unwind": bson.M{"path":"$authorIds"}},
+		{"$match":bson.M{"authorIds":bson.M{"$in":book.AuthorIds}}},
+		{"$group":bson.M{"_id":"$_id","total":bson.M{"$sum":1}}},
+		{"$sort": bson.M{"total": -1}},
 	}
-	logrus.Println(ct)
-	cursor, err := entity.repo.Find(ctx, bson.M{"categoryIds": ct})
-	if err != nil {
-		return []form.BookResponse{}, http.StatusBadRequest, err
-	}
-	for cursor.Next(ctx) {
-		var book model.Book
-		err := cursor.Decode(&book)
+
+	authors :=make(chan []string)
+	categories :=make(chan []string)
+
+	go func() {
+		var similarCategories []string
+		cursor, err := entity.repo.Aggregate(ctx, pipelineCategories)
 		if err != nil {
 			logrus.Println(err)
-			continue
 		}
+		for cursor.Next(ctx) {
+			//logrus.Printf("%v",cursor)
+			var book form.SimilarBook
+			err := cursor.Decode(&book)
+			if err != nil {
+				logrus.Println(err)
+				continue
+			}
+			//logrus.Printf("%v",book)
+			similarCategories = append(similarCategories,book.Id.Hex())
+		}
+		categories<-similarCategories
+	}()
 
-		reviewResp := getReviewsOfBook(book)
-		bookResp := form.BookResponse{
-			Book:       &book,
-			Reviews:    reviewResp.ReviewResp,
-			Rating:     reviewResp.AvgRating,
-			Categories: getCategoryOfBook(&book),
-			Authors:    getAuthorsOfBook(&book),
+
+	go func() {
+		var similarAuthors []string
+		cursor, err := entity.repo.Aggregate(ctx, pipelineAuthors)
+		if err != nil {
+			logrus.Println(err)
 		}
-		booksResp = append(booksResp, bookResp)
+		for cursor.Next(ctx) {
+			//logrus.Printf("%v",cursor)
+			var book form.SimilarBook
+			err := cursor.Decode(&book)
+			if err != nil {
+				logrus.Println(err)
+				continue
+			}
+			//logrus.Printf("%v",book)
+			similarAuthors = append(similarAuthors,book.Id.Hex())
+		}
+		authors<-similarAuthors
+	}()
+	similarAuthors :=<-authors
+	similarCategories :=<-categories
+
+	similarBookIds :=arrays.Union(similarAuthors,similarCategories)
+
+	var wg sync.WaitGroup
+	bookResp :=make(chan *form.BookResponse)
+	for i,_:=range similarBookIds{
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			chann:=new(form.BookResponse)
+			book,_,err:=entity.GetOneByID(similarBookIds[i])
+			if err!=nil{
+				logrus.Println(err)
+				return
+			}
+			chann=&book
+			bookResp<-chann
+		}(i)
+	}
+
+	go func() {
+		wg.Wait()
+		close(bookResp)
+	}()
+	for book :=range bookResp{
+		booksResp = append(booksResp,*book)
 	}
 	return booksResp, http.StatusOK, nil
 }
@@ -224,7 +289,7 @@ func (entity bookEntity) GetOneByID(id string) (form.BookResponse, int, error) {
 	}
 
 	reviewResp := getReviewsOfBook(book)
-	logrus.Println(book.CategoryIds)
+
 	bookResp := form.BookResponse{
 		Book:       &book,
 		Reviews:    reviewResp.ReviewResp,
