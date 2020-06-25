@@ -14,3 +14,8 @@ type Review struct {
 	Rating    int                `bson:"rating" json:"rating"`
 	Upvotes   []string           `bson:"upvotes" json:"upvotes"`
 }
+
+type ReviewGroup struct {
+	Id           string `bson:"_id"`
+	TotalReports int    `bson:"total"`
+}

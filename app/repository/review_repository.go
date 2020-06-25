@@ -24,13 +24,13 @@ type reviewEntity struct {
 }
 
 type IReview interface {
-	GetAll(report int64) ([]form.ReviewResp,int,error)
+	GetAll(report int64) ([]form.ReviewResp, int, error)
 	GetOneById(id string) (form.ReviewResp, int, error)
 	GetByBookId(bookId string) (*form.ReviewResponse, int, error)
 	Create(reviewForm form.ReviewForm) (model.Review, int, error)
 	Update(id, username string, reviewForm form.ReviewForm) (model.Review, int, error)
 	Delete(id, username string) (model.Review, int, error)
-	Upvote(id, username ,action string) (model.Review,int,error)
+	Upvote(id, username, action string) (model.Review, int, error)
 }
 
 func NewReviewEntity(resource *my_db.Resource) IReview {
@@ -56,16 +56,27 @@ func (entity *reviewEntity) GetAll(report int64) ([]form.ReviewResp, int, error)
 
 	var reviews []form.ReviewResp
 
-
-	cursor,err := entity.repo.Find(ctx ,bson.M{})
+	arrayIds, _, err := ReportEntity.GetReviewsByReportCount(report)
 	if err != nil {
 		return []form.ReviewResp{}, http.StatusBadRequest, err
 	}
 
-	for cursor.Next(ctx){
+	query := map[string]interface{}{}
+	if len(arrayIds) > 0 {
+		query["_id"] = bson.M{"$in": arrayIds}
+	} else {
+		return []form.ReviewResp{}, http.StatusOK, nil
+	}
+
+	cursor, err := entity.repo.Find(ctx, query)
+	if err != nil {
+		return []form.ReviewResp{}, http.StatusBadRequest, err
+	}
+
+	for cursor.Next(ctx) {
 		var review model.Review
-		err :=cursor.Decode(&review)
-		if err!=nil{
+		err := cursor.Decode(&review)
+		if err != nil {
 			logrus.Println(err)
 			continue
 		}
@@ -77,11 +88,8 @@ func (entity *reviewEntity) GetAll(report int64) ([]form.ReviewResp, int, error)
 			UpvoteCount: len(review.Upvotes),
 			ReportCount: len(reports),
 		}
-		if int64(len(reports))>=report {
-			reviews = append(reviews, reviewResp)
-		}
+		reviews = append(reviews, reviewResp)
 	}
-
 
 	return reviews, http.StatusOK, nil
 }
@@ -199,7 +207,7 @@ func (entity *reviewEntity) Delete(id, username string) (model.Review, int, erro
 		return model.Review{}, http.StatusBadRequest, err
 	}
 
-	_,_,_=ReportEntity.DeleteByReviewId(id)
+	_, _, _ = ReportEntity.DeleteByReviewId(id)
 
 	return *review.Review, http.StatusOK, nil
 }
@@ -263,18 +271,18 @@ func (entity *reviewEntity) Upvote(id, username, action string) (model.Review, i
 	query := map[string]interface{}{}
 	//query["$set"] = review.Review
 
-	if action=="upvote"{
-		if arrays.Contains(review.Upvotes,username) {
+	if action == "upvote" {
+		if arrays.Contains(review.Upvotes, username) {
 			return model.Review{}, http.StatusBadRequest, errors.New("you already upvoted this review")
 		}
 
-		query["$push"] = bson.M{"upvotes" : username}
+		query["$push"] = bson.M{"upvotes": username}
 	} else {
-		if !arrays.Contains(review.Upvotes,username) {
+		if !arrays.Contains(review.Upvotes, username) {
 			return model.Review{}, http.StatusBadRequest, errors.New("you don't vote this review")
 		}
 
-		query["$pull"] = bson.M{"upvotes" : username}
+		query["$pull"] = bson.M{"upvotes": username}
 	}
 
 	isReturnNewDoc := options.After

@@ -1,6 +1,7 @@
 package form
 
 import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"libu/app/model"
 	"mime/multipart"
 )
@@ -36,4 +37,9 @@ type UpdateBookForm struct {
 	Description string   `json:"description,omitempty"`
 	Link        string   `json:"link,omitempty"`
 	// Authors     []string `json:"authors,omitempty"`
+}
+
+type SimilarBook struct {
+	Id    primitive.ObjectID `bson:"_id"`
+	Score int                `bson:"total"`
 }
