@@ -332,7 +332,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/string"
+                            "type": "string"
                         }
                     }
                 }
@@ -961,6 +961,38 @@
                             "items": {
                                 "$ref": "#/definitions/form.ReviewResponse"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/{id}/reports": {
+            "get": {
+                "description": "Get report by review id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReportController"
+                ],
+                "summary": "Get report by review id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Review ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Report"
                         }
                     }
                 }

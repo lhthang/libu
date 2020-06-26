@@ -604,7 +604,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/string'
+            type: string
       security:
       - ApiKeyAuth: []
       summary: Upload file
@@ -917,6 +917,27 @@ paths:
       summary: Get reviews by book
       tags:
       - ReviewController
+  /reviews/{id}/reports:
+    get:
+      consumes:
+      - application/json
+      description: Get report by review id
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Report'
+      summary: Get report by review id
+      tags:
+      - ReportController
   /sign-up:
     post:
       consumes:
