@@ -54,7 +54,7 @@ func getCategoryOfBook(book *model.Book) []model.Category {
 	var validCategoryIds []string
 	for _, id := range book.CategoryIds {
 		category, _, err := CategoryEntity.GetOneByID(id)
-		if err != nil  {
+		if err != nil {
 			continue
 		}
 		validCategoryIds = append(validCategoryIds, id)
@@ -120,7 +120,6 @@ func (entity bookEntity) GetSimilarBooks(id string) ([]form.BookResponse, int, e
 
 	defer cancel()
 
-
 	var booksResp []form.BookResponse
 
 	book, _, err := entity.GetOneByID(id)
@@ -128,20 +127,20 @@ func (entity bookEntity) GetSimilarBooks(id string) ([]form.BookResponse, int, e
 		return []form.BookResponse{}, http.StatusBadRequest, err
 	}
 
-	pipelineCategories :=[]bson.M{{"$unwind": bson.M{"path":"$categoryIds"}},
-		{"$match":bson.M{"categoryIds":bson.M{"$in":book.CategoryIds}}},
-		{"$group":bson.M{"_id":"$_id","total":bson.M{"$sum":1}}},
-		{"$sort": bson.M{"total": -1}},
-		}
-
-	pipelineAuthors :=[]bson.M{{"$unwind": bson.M{"path":"$authorIds"}},
-		{"$match":bson.M{"authorIds":bson.M{"$in":book.AuthorIds}}},
-		{"$group":bson.M{"_id":"$_id","total":bson.M{"$sum":1}}},
+	pipelineCategories := []bson.M{{"$unwind": bson.M{"path": "$categoryIds"}},
+		{"$match": bson.M{"categoryIds": bson.M{"$in": book.CategoryIds}}},
+		{"$group": bson.M{"_id": "$_id", "total": bson.M{"$sum": 1}}},
 		{"$sort": bson.M{"total": -1}},
 	}
 
-	authors :=make(chan []string)
-	categories :=make(chan []string)
+	pipelineAuthors := []bson.M{{"$unwind": bson.M{"path": "$authorIds"}},
+		{"$match": bson.M{"authorIds": bson.M{"$in": book.AuthorIds}}},
+		{"$group": bson.M{"_id": "$_id", "total": bson.M{"$sum": 1}}},
+		{"$sort": bson.M{"total": -1}},
+	}
+
+	authors := make(chan []string)
+	categories := make(chan []string)
 
 	go func() {
 		var similarCategories []string
@@ -158,11 +157,10 @@ func (entity bookEntity) GetSimilarBooks(id string) ([]form.BookResponse, int, e
 				continue
 			}
 			//logrus.Printf("%v",book)
-			similarCategories = append(similarCategories,book.Id.Hex())
+			similarCategories = append(similarCategories, book.Id.Hex())
 		}
-		categories<-similarCategories
+		categories <- similarCategories
 	}()
-
 
 	go func() {
 		var similarAuthors []string
@@ -179,29 +177,29 @@ func (entity bookEntity) GetSimilarBooks(id string) ([]form.BookResponse, int, e
 				continue
 			}
 			//logrus.Printf("%v",book)
-			similarAuthors = append(similarAuthors,book.Id.Hex())
+			similarAuthors = append(similarAuthors, book.Id.Hex())
 		}
-		authors<-similarAuthors
+		authors <- similarAuthors
 	}()
-	similarAuthors :=<-authors
-	similarCategories :=<-categories
+	similarAuthors := <-authors
+	similarCategories := <-categories
 
-	similarBookIds :=arrays.Union(similarAuthors,similarCategories)
+	similarBookIds := arrays.Union(similarAuthors, similarCategories)
 
 	var wg sync.WaitGroup
-	bookResp :=make(chan *form.BookResponse)
-	for i,_:=range similarBookIds{
+	bookResp := make(chan *form.BookResponse)
+	for i, _ := range similarBookIds {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			chann:=new(form.BookResponse)
-			book,_,err:=entity.GetOneByID(similarBookIds[i])
-			if err!=nil{
+			chann := new(form.BookResponse)
+			book, _, err := entity.GetOneByID(similarBookIds[i])
+			if err != nil {
 				logrus.Println(err)
 				return
 			}
-			chann=&book
-			bookResp<-chann
+			chann = &book
+			bookResp <- chann
 		}(i)
 	}
 
@@ -209,8 +207,8 @@ func (entity bookEntity) GetSimilarBooks(id string) ([]form.BookResponse, int, e
 		wg.Wait()
 		close(bookResp)
 	}()
-	for book :=range bookResp{
-		booksResp = append(booksResp,*book)
+	for book := range bookResp {
+		booksResp = append(booksResp, *book)
 	}
 	return booksResp, http.StatusOK, nil
 }
@@ -248,7 +246,7 @@ func (entity bookEntity) Create(bookForm form.BookForm) (form.BookResponse, int,
 		CategoryIds: categoryIds,
 		Image:       bookForm.Image,
 		Description: bookForm.Description,
-		Link:        "",
+		Link:        bookForm.Link,
 	}
 	channel := make(chan string)
 	if bookForm.File != nil {
