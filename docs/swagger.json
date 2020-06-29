@@ -931,6 +931,46 @@
                 }
             }
         },
+        "/reviews/{id}/admin": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete review by id with admin role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReviewController"
+                ],
+                "summary": "Delete review by id with admin role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Review ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Review"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/reviews/{id}/book": {
             "get": {
                 "description": "Get reviews by book",

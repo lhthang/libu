@@ -6,6 +6,7 @@ import (
 	"libu/app/repository"
 	"libu/middlewares"
 	"libu/my_db"
+	"libu/utils/constant"
 	err2 "libu/utils/err"
 	"libu/utils/jwt"
 	"net/http"
@@ -24,6 +25,8 @@ func ApplyReviewAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	reviewRoute.POST("/:id/action", upvoteReview(reviewEntity))
 	reviewRoute.PUT("/:id", updateReview(reviewEntity))
 	reviewRoute.DELETE("/:id", deleteReview(reviewEntity))
+	reviewRoute.Use(middlewares.RequireAuthorization(constant.ADMIN))
+	reviewRoute.DELETE("/:id/admin", deleteReviewByAdmin(reviewEntity))
 }
 
 // GetAllReviews godoc
@@ -205,6 +208,29 @@ func upvoteReview(reviewEntity repository.IReview) func(ctx *gin.Context) {
 		}
 
 		review, code, err := reviewEntity.Upvote(id,username,actionForm.Action)
+		response := map[string]interface{}{
+			"review": review,
+			"error":  err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// DeleteReviewByIDWithAdmin godoc
+// @Tags ReviewController
+// @Summary Delete review by id with admin role
+// @Description  Delete review by id with admin role
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id path string true "Review ID"
+// @Success 200 {array} model.Review
+// @Router /reviews/{id}/admin [delete]
+func deleteReviewByAdmin(reviewEntity repository.IReview) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+
+		review, code, err := reviewEntity.DeleteByAdmin(id)
 		response := map[string]interface{}{
 			"review": review,
 			"error":  err2.GetErrorMessage(err),
