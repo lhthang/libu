@@ -30,6 +30,7 @@ type IReview interface {
 	Create(reviewForm form.ReviewForm) (model.Review, int, error)
 	Update(id, username string, reviewForm form.ReviewForm) (model.Review, int, error)
 	Delete(id, username string) (model.Review, int, error)
+	DeleteByAdmin(id string) (model.Review, int, error)
 	Upvote(id, username, action string) (model.Review, int, error)
 }
 
@@ -294,5 +295,30 @@ func (entity *reviewEntity) Upvote(id, username, action string) (model.Review, i
 	if err != nil {
 		return model.Review{}, getHTTPCode(err), err
 	}
+	return *review.Review, http.StatusOK, nil
+}
+
+func (entity *reviewEntity) DeleteByAdmin(id string) (model.Review, int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return model.Review{}, getHTTPCode(err), err
+	}
+
+	review, _, err := entity.GetOneById(id)
+	if err != nil || review.Review == nil {
+		return model.Review{}, http.StatusNotFound, err
+	}
+
+
+	err = entity.repo.FindOneAndDelete(ctx, bson.M{"_id": objID}).Decode(&review)
+	if err != nil {
+		return model.Review{}, http.StatusBadRequest, err
+	}
+
+	_, _, _ = ReportEntity.DeleteByReviewId(id)
+
 	return *review.Review, http.StatusOK, nil
 }
