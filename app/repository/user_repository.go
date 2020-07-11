@@ -213,9 +213,9 @@ func getFavoriteCategories(user *model.User) []model.Category {
 		close(categoryResp)
 	}()
 	for category := range categoryResp {
-		logrus.Println(category.Id)
 		categories = append(categories, *category)
 	}
+	logrus.Println(categories)
 	return categories
 }
 
@@ -337,5 +337,6 @@ func (entity *userEntity) UpdateFavorite(favoriteForm form.FavoriteForm, usernam
 
 	userResp := getUserResponse(user)
 	userResp.Books = getFavoriteBooks(user)
+	userResp.Categories = getFavoriteCategories(user)
 	return &userResp, http.StatusOK, nil
 }
