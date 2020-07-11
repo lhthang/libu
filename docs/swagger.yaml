@@ -62,6 +62,8 @@ definitions:
         items:
           type: string
         type: array
+      createAt:
+        type: string
       description:
         type: string
       id:
@@ -479,6 +481,14 @@ paths:
       - application/json
       description: Get all books
       parameters:
+      - description: Skip
+        in: query
+        name: skip
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
       - description: Query
         in: query
         name: q
@@ -541,26 +551,6 @@ paths:
       summary: Delete book by id
       tags:
       - BookController
-    get:
-      consumes:
-      - application/json
-      description: Get book by id
-      parameters:
-      - description: Book ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/form.BookResponse'
-      summary: Get book by id
-      tags:
-      - BookController
     put:
       consumes:
       - application/json
@@ -589,7 +579,28 @@ paths:
       summary: Update book by id
       tags:
       - BookController
-  /books/{id}/similar:
+  /books/book/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get book by id
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.BookResponse'
+      summary: Get book by id
+      tags:
+      - BookController
+  /books/book/{id}/similar:
     get:
       consumes:
       - application/json
@@ -610,6 +621,32 @@ paths:
               $ref: '#/definitions/form.BookResponse'
             type: array
       summary: Get similar books
+      tags:
+      - BookController
+  /books/get-latest:
+    get:
+      consumes:
+      - application/json
+      description: Get new books
+      parameters:
+      - description: Skip
+        in: query
+        name: skip
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/form.BookResponse'
+            type: array
+      summary: Get new books
       tags:
       - BookController
   /books/upload:

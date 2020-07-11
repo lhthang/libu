@@ -77,7 +77,7 @@ func (entity *authorEntity) GetOneByID(id string) (*model.Author, int, error) {
 }
 
 func (entity *authorEntity) GetBooksByAuthorId(authorId string) ([]form.BookResponse, int, error) {
-	allBooks, _, err := BookEntity.GetAll()
+	allBooks, _, err := BookEntity.GetAll(0,10000000)
 	if err != nil {
 		return nil, http.StatusNotFound, err
 	}

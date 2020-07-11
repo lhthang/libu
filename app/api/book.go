@@ -11,6 +11,7 @@ import (
 	err2 "libu/utils/err"
 	"libu/utils/firebase"
 	"net/http"
+	"strconv"
 )
 
 func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
@@ -19,7 +20,7 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	bookRoute := app.Group("books")
 	bookRoute.GET("", getAllBooks(bookEntity))
 	bookRoute.GET("/get-high-rated", getAllBooks(bookEntity))
-	bookRoute.GET("/get-latest", getAllBooks(bookEntity))
+	bookRoute.GET("/get-latest", getNewBooks(bookEntity))
 	bookRoute.GET("/get-popular", getAllBooks(bookEntity))
 	bookRoute.GET("/book/:id/", getBookById(bookEntity))
 	bookRoute.GET("/book/:id/similar", getSimilarBooks(bookEntity))
@@ -37,12 +38,23 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 // @Description Get all books
 // @Accept  json
 // @Produce  json
+// @Param skip query int false "Skip"
+// @Param limit query int false "Limit"
 // @Param q query string false "Query"
 // @Success 200 {array} form.BookResponse
 // @Router /books [get]
 func getAllBooks(entity repository.IBook) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		keyword := ctx.Query("q")
+
+		skip, err := strconv.ParseInt(ctx.Query("skip"), 10, 64)
+		if err != nil {
+			skip = 0
+		}
+		limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+		if err != nil {
+			limit = 100000
+		}
 
 		if keyword != "" {
 			books, code, err := entity.Search(keyword)
@@ -58,7 +70,43 @@ func getAllBooks(entity repository.IBook) func(ctx *gin.Context) {
 			return
 		}
 
-		books, code, err := entity.GetAll()
+		books, code, err := entity.GetAll(skip,limit)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+			return
+		}
+
+		response := map[string]interface{}{
+			"books": books,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// GetNewBooks godoc
+// @Tags BookController
+// @Summary Get new books
+// @Description Get new books
+// @Accept  json
+// @Produce  json
+// @Param skip query int false "Skip"
+// @Param limit query int false "Limit"
+// @Success 200 {array} form.BookResponse
+// @Router /books/get-latest [get]
+func getNewBooks(entity repository.IBook) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+
+		skip, err := strconv.ParseInt(ctx.Query("skip"), 10, 64)
+		if err != nil {
+			skip = 0
+		}
+		limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+		if err != nil {
+			limit = 100000
+		}
+
+		books, code, err := entity.GetNewBooks(skip,limit)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 			return

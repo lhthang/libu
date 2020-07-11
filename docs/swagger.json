@@ -245,6 +245,18 @@
                 "summary": "Get all books",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Skip",
+                        "name": "skip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Query",
                         "name": "q",
@@ -301,6 +313,113 @@
                 }
             }
         },
+        "/books/book/{id}": {
+            "get": {
+                "description": "Get book by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BookController"
+                ],
+                "summary": "Get book by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Book ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/form.BookResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/book/{id}/similar": {
+            "get": {
+                "description": "Get similar books",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BookController"
+                ],
+                "summary": "Get similar books",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Book ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/form.BookResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/books/get-latest": {
+            "get": {
+                "description": "Get new books",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BookController"
+                ],
+                "summary": "Get new books",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Skip",
+                        "name": "skip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/form.BookResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/books/upload": {
             "post": {
                 "security": [
@@ -339,36 +458,6 @@
             }
         },
         "/books/{id}": {
-            "get": {
-                "description": "Get book by id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "BookController"
-                ],
-                "summary": "Get book by id",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Book ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/form.BookResponse"
-                        }
-                    }
-                }
-            },
             "put": {
                 "security": [
                     {
@@ -444,41 +533,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/form.BookResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/books/{id}/similar": {
-            "get": {
-                "description": "Get similar books",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "BookController"
-                ],
-                "summary": "Get similar books",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Book ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/form.BookResponse"
-                            }
                         }
                     }
                 }
@@ -1345,6 +1399,9 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "createAt": {
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"

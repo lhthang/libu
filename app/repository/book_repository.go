@@ -33,7 +33,8 @@ type BookChan struct {
 
 type IBook interface {
 	GetSimilarBooks(id string) ([]form.BookResponse, int, error)
-	GetAll() ([]form.BookResponse, int, error)
+	GetAll(skip,limit int64) ([]form.BookResponse, int, error)
+	GetNewBooks(skip,limit int64) ([]form.BookResponse, int, error)
 	Search(keyword string) ([]form.BookResponse, int, error)
 	Create(bookForm form.BookForm) (form.BookResponse, int, error)
 	GetOneByID(id string) (form.BookResponse, int, error)
@@ -122,12 +123,47 @@ func getReviewsOfBook(book model.Book) *form.ReviewResponse {
 	return reviewResp
 }
 
-func (entity bookEntity) GetAll() ([]form.BookResponse, int, error) {
+func (entity bookEntity) GetAll(skip,limit int64) ([]form.BookResponse, int, error) {
 	ctx, cancel := initContext()
 
 	defer cancel()
 	var booksResp []form.BookResponse
-	cursor, err := entity.repo.Find(ctx, bson.M{})
+	cursor, err := entity.repo.Find(ctx, bson.M{},&options.FindOptions{
+		Skip: &skip,
+		Limit: &limit,
+	})
+	if err != nil {
+		return booksResp, getHTTPCode(err), err
+	}
+
+	for cursor.Next(ctx) {
+		var book model.Book
+		err := cursor.Decode(&book)
+		if err != nil {
+			logrus.Print(err)
+		}
+		reviewResp := getReviewsOfBook(book)
+		booksResp = append(booksResp, form.BookResponse{
+			Book: &book,
+			//Reviews:    reviewResp.Reviews,
+			Rating:     reviewResp.AvgRating,
+			Categories: getCategoryOfBook(&book),
+			Authors:    getAuthorsOfBook(&book),
+		})
+	}
+	return booksResp, http.StatusOK, nil
+}
+
+func (entity bookEntity) GetNewBooks(skip,limit int64) ([]form.BookResponse, int, error) {
+	ctx, cancel := initContext()
+
+	defer cancel()
+	var booksResp []form.BookResponse
+	cursor, err := entity.repo.Find(ctx, bson.M{},&options.FindOptions{
+		Sort: bson.D{{"createAt",-1}},
+		Skip: &skip,
+		Limit: &limit,
+	})
 	if err != nil {
 		return booksResp, getHTTPCode(err), err
 	}
