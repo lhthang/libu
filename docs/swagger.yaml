@@ -92,6 +92,15 @@ definitions:
     required:
     - name
     type: object
+  form.FavoriteForm:
+    properties:
+      action:
+        type: string
+      favoriteCategoryId:
+        type: string
+      favoriteId:
+        type: string
+    type: object
   form.ReportForm:
     properties:
       reason:
@@ -214,6 +223,10 @@ definitions:
     type: object
   form.UserResponse:
     properties:
+      favoriteGenres:
+        items:
+          type: string
+        type: array
       favoriteIds:
         items:
           type: string
@@ -281,6 +294,10 @@ definitions:
     type: object
   model.User:
     properties:
+      favoriteCategoryIds:
+        items:
+          type: string
+        type: array
       favoriteIds:
         items:
           type: string
@@ -604,7 +621,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/string'
       security:
       - ApiKeyAuth: []
       summary: Upload file
@@ -1004,46 +1021,25 @@ paths:
       summary: Get all user
       tags:
       - UserController
-  /users/favorites/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Remove favorite book
-      parameters:
-      - description: Book Id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.User'
-      security:
-      - ApiKeyAuth: []
-      summary: Remove favorite book
-      tags:
-      - UserController
+  /users/favorites:
     put:
       consumes:
       - application/json
       description: Add favorite book
       parameters:
-      - description: Book Id
-        in: path
-        name: id
+      - description: Favorite Form
+        in: body
+        name: favoriteForm
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/form.FavoriteForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/form.UserResponse'
       security:
       - ApiKeyAuth: []
       summary: Add favorite book

@@ -332,7 +332,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/string"
                         }
                     }
                 }
@@ -1103,7 +1103,7 @@
                 }
             }
         },
-        "/users/favorites/{id}": {
+        "/users/favorites": {
             "put": {
                 "security": [
                     {
@@ -1123,53 +1123,20 @@
                 "summary": "Add favorite book",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Book Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
+                        "description": "Favorite Form",
+                        "name": "favoriteForm",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/form.FavoriteForm"
                         }
                     }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Remove favorite book",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "UserController"
-                ],
-                "summary": "Remove favorite book",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Book Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/form.UserResponse"
                         }
                     }
                 }
@@ -1425,6 +1392,20 @@
                 }
             }
         },
+        "form.FavoriteForm": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "favoriteCategoryId": {
+                    "type": "string"
+                },
+                "favoriteId": {
+                    "type": "string"
+                }
+            }
+        },
         "form.ReportForm": {
             "type": "object",
             "required": [
@@ -1611,6 +1592,12 @@
         "form.UserResponse": {
             "type": "object",
             "properties": {
+                "favoriteGenres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "favoriteIds": {
                     "type": "array",
                     "items": {
@@ -1714,6 +1701,12 @@
         "model.User": {
             "type": "object",
             "properties": {
+                "favoriteCategoryIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "favoriteIds": {
                     "type": "array",
                     "items": {

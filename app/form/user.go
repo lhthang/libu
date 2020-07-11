@@ -23,9 +23,16 @@ type UpdateUser struct {
 }
 
 type UserResponse struct {
-	Id          string   `json:"id"`
-	Username    string   `bson:"username" json:"username"`
-	FullName    string   `bson:"fullName" json:"fullName"`
-	FavoriteIds []string `bson:"favoriteIds" json:"favoriteIds"`
-	Roles       []string `json:"roles"`
+	Id             string   `json:"id"`
+	Username       string   `bson:"username" json:"username"`
+	FullName       string   `bson:"fullName" json:"fullName"`
+	FavoriteIds    []string `bson:"favoriteIds" json:"favoriteIds"`
+	FavoriteGenres []string `bson:"favoriteGenres" json:"favoriteGenres"`
+	Roles          []string `json:"roles"`
+}
+
+type FavoriteForm struct {
+	FavoriteId         string `bson:"favoriteId" json:"favoriteId"`
+	FavoriteCategoryId string `bson:"favoriteCategoryId" json:"favoriteCategoryId"`
+	Action             string `json:"action" binding:"oneof=ADD REMOVE"`
 }

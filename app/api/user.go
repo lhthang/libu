@@ -26,8 +26,7 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 	userRoute.GET("/get/:id", getUserById(userEntity))
 	userRoute.Use(middlewares.RequireAuthenticated())
 	userRoute.PUT("/update/:username", updateUser(userEntity))
-	userRoute.PUT("/favorites/:id", addFavorite(userEntity))
-	userRoute.DELETE("/favorites/:id", removeFavorite(userEntity))
+	userRoute.PUT("/favorites", addFavorite(userEntity))
 	// when need authentication
 	userRoute.Use(middlewares.RequireAuthorization(constant.ADMIN)) // when need authorization
 	userRoute.GET("", getAllUSer(userEntity))
@@ -205,39 +204,20 @@ func updateRole(userEntity repository.IUser) func(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Param id path string true "Book Id"
-// @Success 200 {object} model.User
-// @Router /users/favorites/{id} [put]
+// @Param favoriteForm body form.FavoriteForm true "Favorite Form"
+// @Success 200 {object} form.UserResponse
+// @Router /users/favorites [put]
 func addFavorite(userEntity repository.IUser) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		id := ctx.Param("id")
 		username := jwt.GetUsername(ctx)
 
-		user, code, err := userEntity.UpdateFavorite(id, username, constant.ADD)
-		response := map[string]interface{}{
-			"user":  user,
-			"error": err2.GetErrorMessage(err),
+		actionForm := form.FavoriteForm{}
+		if err := ctx.Bind(&actionForm); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+			return
 		}
-		ctx.JSON(code, response)
-	}
-}
 
-// RemoveFavorite godoc
-// @Tags UserController
-// @Summary Remove favorite book
-// @Description Remove favorite book
-// @Accept  json
-// @Produce  json
-// @Security ApiKeyAuth
-// @Param id path string true "Book Id"
-// @Success 200 {object} model.User
-// @Router /users/favorites/{id} [delete]
-func removeFavorite(userEntity repository.IUser) func(ctx *gin.Context) {
-	return func(ctx *gin.Context) {
-		id := ctx.Param("id")
-		username := jwt.GetUsername(ctx)
-
-		user, code, err := userEntity.UpdateFavorite(id, username, constant.REMOVE)
+		user, code, err := userEntity.UpdateFavorite(actionForm, username)
 		response := map[string]interface{}{
 			"user":  user,
 			"error": err2.GetErrorMessage(err),

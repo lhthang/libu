@@ -30,9 +30,9 @@ type IUser interface {
 	GetOneById(id string) (*form.UserResponse, int, error)
 	GetOneByUsername(username string) (*model.User, int, error)
 	CreateOne(userForm form.User) (*model.User, int, error)
-	UpdateUser(username string, userForm form.UpdateInformation) (model.User, int, error)
+	UpdateUser(username string, userForm form.UpdateInformation) (*form.UserResponse, int, error)
 	UpdateRole(updateUser form.UpdateUser) ([]model.User, int, []string)
-	UpdateFavorite(id, username, action string) (model.User, int, error)
+	UpdateFavorite(actionForm form.FavoriteForm, username string) (*form.UserResponse, int, error)
 }
 
 //func NewToDoEntity
@@ -60,11 +60,12 @@ func (entity *userEntity) GetAll() ([]form.UserResponse, int, error) {
 			logrus.Print(err)
 		}
 		usersList = append(usersList, form.UserResponse{
-			Id:          user.Id.Hex(),
-			Username:    user.Username,
-			FullName:    user.FullName,
-			FavoriteIds: user.FavoriteIds,
-			Roles:       user.Roles,
+			Id:             user.Id.Hex(),
+			Username:       user.Username,
+			FullName:       user.FullName,
+			FavoriteIds:    user.FavoriteIds,
+			FavoriteGenres: user.FavoriteCategoryId,
+			Roles:          user.Roles,
 		})
 	}
 	return usersList, http.StatusOK, nil
@@ -108,12 +109,13 @@ func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error
 	defer cancel()
 
 	user := model.User{
-		Id:          primitive.NewObjectID(),
-		Username:    userForm.Username,
-		FullName:    userForm.FullName,
-		Password:    bcrypt.HashPassword(userForm.Password),
-		Roles:       []string{constant.ADMIN, constant.USER},
-		FavoriteIds: []string{},
+		Id:                 primitive.NewObjectID(),
+		Username:           userForm.Username,
+		FullName:           userForm.FullName,
+		Password:           bcrypt.HashPassword(userForm.Password),
+		Roles:              []string{constant.ADMIN, constant.USER},
+		FavoriteIds:        []string{},
+		FavoriteCategoryId: []string{},
 	}
 	found, _, _ := entity.GetOneByUsername(user.Username)
 	if found != nil {
@@ -129,14 +131,14 @@ func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error
 	return &user, http.StatusOK, nil
 }
 
-func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInformation) (model.User, int, error) {
+func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInformation) (*form.UserResponse, int, error) {
 	ctx, cancel := initContext()
 	defer cancel()
 
 	user, _, err := entity.GetOneByUsername(username)
 
 	if err != nil || user == nil {
-		return *user, http.StatusNotFound, errors.New("not found")
+		return nil, http.StatusNotFound, errors.New("not found")
 	}
 
 	password := user.Password
@@ -147,7 +149,7 @@ func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInform
 	}
 	if isUpdatePw {
 		if err = bcrypt.ComparePasswordAndHashedPassword(userForm.OldPassword, user.Password); err != nil {
-			return *user, http.StatusBadRequest, errors.New("old password is wrong")
+			return nil, http.StatusBadRequest, errors.New("old password is wrong")
 		}
 
 		userForm.Password = bcrypt.HashPassword(newPassword)
@@ -167,7 +169,20 @@ func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInform
 
 	err = entity.repo.FindOneAndUpdate(ctx, bson.M{"username": username}, bson.M{"$set": user}, opts).Decode(&user)
 
-	return *user, http.StatusOK, nil
+	userResp := GetUserRespone(user)
+	return &userResp, http.StatusOK, nil
+}
+
+func GetUserRespone(user *model.User) form.UserResponse {
+	userResp := form.UserResponse{
+		Id:             user.Id.Hex(),
+		Username:       user.Username,
+		FullName:       user.FullName,
+		FavoriteIds:    user.FavoriteIds,
+		FavoriteGenres: user.FavoriteCategoryId,
+		Roles:          user.Roles,
+	}
+	return userResp
 }
 
 func (entity *userEntity) UpdateRole(userForm form.UpdateUser) ([]model.User, int, []string) {
@@ -201,27 +216,44 @@ func (entity *userEntity) UpdateRole(userForm form.UpdateUser) ([]model.User, in
 	return users, http.StatusOK, errs
 }
 
-func (entity *userEntity) UpdateFavorite(id, username, action string) (model.User, int, error) {
+func (entity *userEntity) UpdateFavorite(favoriteForm form.FavoriteForm, username string) (*form.UserResponse, int, error) {
 	ctx, cancel := initContext()
 	defer cancel()
 
 	user, _, err := entity.GetOneByUsername(username)
 
 	if err != nil || user == nil {
-		return model.User{}, getHTTPCode(err), err
+		return nil, getHTTPCode(err), err
 	}
 
 	update := map[string]interface{}{}
-	if action == constant.ADD {
-		if arrays.Contains(user.FavoriteIds, id) {
-			return model.User{}, http.StatusBadRequest, errors.New("this is already added to your favorite list")
+
+	if favoriteForm.FavoriteId!="" && favoriteForm.Action==constant.ADD{
+		if arrays.Contains(user.FavoriteIds, favoriteForm.FavoriteId) {
+			return nil, http.StatusBadRequest, errors.New("this book is already added to your favorite list")
 		}
-		update = bson.M{"$push": bson.M{"favoriteIds": id}}
-	} else {
-		if !arrays.Contains(user.FavoriteIds, id) {
-			return model.User{}, http.StatusBadRequest, errors.New("this is not added to your favorite list")
+		update = bson.M{"$push": bson.M{"favoriteIds": favoriteForm.FavoriteId}}
+	}
+
+	if favoriteForm.FavoriteId!="" && favoriteForm.Action==constant.REMOVE{
+		if !arrays.Contains(user.FavoriteIds, favoriteForm.FavoriteId) {
+			return nil, http.StatusBadRequest, errors.New("this book is not added to your favorite list")
 		}
-		update = bson.M{"$pull": bson.M{"favoriteIds": id}}
+		update = bson.M{"$pull": bson.M{"favoriteIds": favoriteForm.FavoriteId}}
+	}
+
+	if favoriteForm.FavoriteCategoryId !="" && favoriteForm.Action==constant.ADD{
+		if arrays.Contains(user.FavoriteCategoryId, favoriteForm.FavoriteCategoryId) {
+			return nil, http.StatusBadRequest, errors.New("this category is already added to your favorite list")
+		}
+		update = bson.M{"$push": bson.M{"favoriteGenreIds": favoriteForm.FavoriteCategoryId}}
+	}
+
+	if favoriteForm.FavoriteCategoryId !="" && favoriteForm.Action==constant.REMOVE{
+		if !arrays.Contains(user.FavoriteCategoryId, favoriteForm.FavoriteCategoryId) {
+			return nil, http.StatusBadRequest, errors.New("this category is not added to your favorite list")
+		}
+		update = bson.M{"$pull": bson.M{"favoriteGenreIds": favoriteForm.FavoriteCategoryId}}
 	}
 
 	isReturnNewDoc := options.After
@@ -230,5 +262,6 @@ func (entity *userEntity) UpdateFavorite(id, username, action string) (model.Use
 	}
 	err = entity.repo.FindOneAndUpdate(ctx, bson.M{"username": username}, update, opts).Decode(&user)
 
-	return *user, http.StatusOK, nil
+	userResp := GetUserRespone(user)
+	return &userResp, http.StatusOK, nil
 }
