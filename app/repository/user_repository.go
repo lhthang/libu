@@ -9,6 +9,7 @@ import (
 	"libu/utils/bcrypt"
 	"libu/utils/constant"
 	"net/http"
+	"sync"
 
 	"github.com/jinzhu/copier"
 	"github.com/sirupsen/logrus"
@@ -60,12 +61,12 @@ func (entity *userEntity) GetAll() ([]form.UserResponse, int, error) {
 			logrus.Print(err)
 		}
 		usersList = append(usersList, form.UserResponse{
-			Id:             user.Id.Hex(),
-			Username:       user.Username,
-			FullName:       user.FullName,
-			FavoriteIds:    user.FavoriteIds,
-			FavoriteGenres: user.FavoriteCategoryId,
-			Roles:          user.Roles,
+			Id:                  user.Id.Hex(),
+			Username:            user.Username,
+			FullName:            user.FullName,
+			FavoriteIds:         user.FavoriteIds,
+			FavoriteCategoryIds: user.FavoriteCategoryId,
+			Roles:               user.Roles,
 		})
 	}
 	return usersList, http.StatusOK, nil
@@ -91,7 +92,7 @@ func (entity *userEntity) GetOneById(id string) (*form.UserResponse, int, error)
 	ctx, cancel := initContext()
 	defer cancel()
 
-	var user form.UserResponse
+	var user model.User
 	objID, _ := primitive.ObjectIDFromHex(id)
 	err :=
 		entity.repo.FindOne(ctx, bson.M{"_id": objID}).Decode(&user)
@@ -101,7 +102,10 @@ func (entity *userEntity) GetOneById(id string) (*form.UserResponse, int, error)
 		return nil, 400, err
 	}
 
-	return &user, http.StatusOK, nil
+	userResp := getUserResponse(&user)
+	userResp.Books = getFavoriteBooks(&user)
+	userResp.Categories =getFavoriteCategories(&user)
+	return &userResp, http.StatusOK, nil
 }
 
 func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error) {
@@ -169,20 +173,79 @@ func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInform
 
 	err = entity.repo.FindOneAndUpdate(ctx, bson.M{"username": username}, bson.M{"$set": user}, opts).Decode(&user)
 
-	userResp := GetUserRespone(user)
+	userResp := getUserResponse(user)
 	return &userResp, http.StatusOK, nil
 }
 
-func GetUserRespone(user *model.User) form.UserResponse {
+func getUserResponse(user *model.User) form.UserResponse {
 	userResp := form.UserResponse{
-		Id:             user.Id.Hex(),
-		Username:       user.Username,
-		FullName:       user.FullName,
-		FavoriteIds:    user.FavoriteIds,
-		FavoriteGenres: user.FavoriteCategoryId,
-		Roles:          user.Roles,
+		Id:                  user.Id.Hex(),
+		Username:            user.Username,
+		FullName:            user.FullName,
+		FavoriteIds:         user.FavoriteIds,
+		FavoriteCategoryIds: user.FavoriteCategoryId,
+		Roles:               user.Roles,
 	}
 	return userResp
+}
+
+func getFavoriteCategories(user *model.User) []model.Category {
+	var categories []model.Category
+	var wg sync.WaitGroup
+	categoryResp := make(chan *model.Category)
+	for i, _ := range user.FavoriteCategoryId {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			chann := new(model.Category)
+			category, _, err := CategoryEntity.GetOneByID(user.FavoriteCategoryId[i])
+			if err != nil {
+				logrus.Println(err)
+				return
+			}
+			chann = category
+			categoryResp <- chann
+		}(i)
+	}
+
+	go func() {
+		wg.Wait()
+		close(categoryResp)
+	}()
+	for category := range categoryResp {
+		logrus.Println(category.Id)
+		categories = append(categories, *category)
+	}
+	return categories
+}
+
+func getFavoriteBooks(user *model.User) []form.BookResponse {
+	var booksResp []form.BookResponse
+	var wg sync.WaitGroup
+	bookResp := make(chan *form.BookResponse)
+	for i, _ := range user.FavoriteIds {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			chann := new(form.BookResponse)
+			book, _, err := BookEntity.GetOneByID(user.FavoriteIds[i])
+			if err != nil {
+				logrus.Println(err)
+				return
+			}
+			chann = &book
+			bookResp <- chann
+		}(i)
+	}
+
+	go func() {
+		wg.Wait()
+		close(bookResp)
+	}()
+	for book := range bookResp {
+		booksResp = append(booksResp, *book)
+	}
+	return booksResp
 }
 
 func (entity *userEntity) UpdateRole(userForm form.UpdateUser) ([]model.User, int, []string) {
@@ -228,40 +291,51 @@ func (entity *userEntity) UpdateFavorite(favoriteForm form.FavoriteForm, usernam
 
 	update := map[string]interface{}{}
 
-	if favoriteForm.FavoriteId!="" && favoriteForm.Action==constant.ADD{
-		if arrays.Contains(user.FavoriteIds, favoriteForm.FavoriteId) {
-			return nil, http.StatusBadRequest, errors.New("this book is already added to your favorite list")
+	fields :=map[string]interface{}{}
+
+	//prepareUpdate
+	if favoriteForm.Action == constant.ADD{
+		if favoriteForm.FavoriteId!=""{
+			if arrays.Contains(user.FavoriteIds, favoriteForm.FavoriteId) {
+				return nil, http.StatusBadRequest, errors.New("this book is already added to your favorite list")
+			}
+			fields["favoriteIds"] =favoriteForm.FavoriteId
 		}
-		update = bson.M{"$push": bson.M{"favoriteIds": favoriteForm.FavoriteId}}
+		if favoriteForm.FavoriteCategoryId!=""{
+			if arrays.Contains(user.FavoriteCategoryId, favoriteForm.FavoriteCategoryId) {
+				return nil, http.StatusBadRequest, errors.New("this category is already added to your favorite list")
+			}
+			fields["favoriteCategoryIds"] =favoriteForm.FavoriteCategoryId
+
+		}
+		update["$push"] = fields
+
+	}
+	if favoriteForm.Action == constant.REMOVE{
+		if favoriteForm.FavoriteId!=""{
+			if !arrays.Contains(user.FavoriteIds, favoriteForm.FavoriteId) {
+				return nil, http.StatusBadRequest, errors.New("this book is not added to your favorite list")
+			}
+			fields["favoriteIds"] =favoriteForm.FavoriteId
+		}
+		if favoriteForm.FavoriteCategoryId!=""{
+			if !arrays.Contains(user.FavoriteCategoryId, favoriteForm.FavoriteCategoryId) {
+				return nil, http.StatusBadRequest, errors.New("this category is not added to your favorite list")
+			}
+			fields["favoriteCategoryIds"] =favoriteForm.FavoriteCategoryId
+		}
+		update["$pull"] = fields
 	}
 
-	if favoriteForm.FavoriteId!="" && favoriteForm.Action==constant.REMOVE{
-		if !arrays.Contains(user.FavoriteIds, favoriteForm.FavoriteId) {
-			return nil, http.StatusBadRequest, errors.New("this book is not added to your favorite list")
-		}
-		update = bson.M{"$pull": bson.M{"favoriteIds": favoriteForm.FavoriteId}}
-	}
-
-	if favoriteForm.FavoriteCategoryId !="" && favoriteForm.Action==constant.ADD{
-		if arrays.Contains(user.FavoriteCategoryId, favoriteForm.FavoriteCategoryId) {
-			return nil, http.StatusBadRequest, errors.New("this category is already added to your favorite list")
-		}
-		update = bson.M{"$push": bson.M{"favoriteGenreIds": favoriteForm.FavoriteCategoryId}}
-	}
-
-	if favoriteForm.FavoriteCategoryId !="" && favoriteForm.Action==constant.REMOVE{
-		if !arrays.Contains(user.FavoriteCategoryId, favoriteForm.FavoriteCategoryId) {
-			return nil, http.StatusBadRequest, errors.New("this category is not added to your favorite list")
-		}
-		update = bson.M{"$pull": bson.M{"favoriteGenreIds": favoriteForm.FavoriteCategoryId}}
-	}
 
 	isReturnNewDoc := options.After
 	opts := &options.FindOneAndUpdateOptions{
 		ReturnDocument: &isReturnNewDoc,
 	}
+	logrus.Println(update)
 	err = entity.repo.FindOneAndUpdate(ctx, bson.M{"username": username}, update, opts).Decode(&user)
 
-	userResp := GetUserRespone(user)
+	userResp := getUserResponse(user)
+	userResp.Books = getFavoriteBooks(user)
 	return &userResp, http.StatusOK, nil
 }

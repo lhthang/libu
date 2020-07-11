@@ -223,7 +223,15 @@ definitions:
     type: object
   form.UserResponse:
     properties:
-      favoriteGenres:
+      favoriteBooks:
+        items:
+          $ref: '#/definitions/form.BookResponse'
+        type: array
+      favoriteCategories:
+        items:
+          $ref: '#/definitions/model.Category'
+        type: array
+      favoriteCategoryIds:
         items:
           type: string
         type: array

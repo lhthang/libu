@@ -1,6 +1,7 @@
 package arrays
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 )
@@ -118,5 +119,18 @@ func Difference(a, b []string) []string {
 		}
 	}
 	return diff
+}
+
+func Keys(m interface{}) (keys []interface{}) {
+	v := reflect.ValueOf(m)
+	if v.Kind() != reflect.Map {
+		fmt.Errorf("input type not a map: %v", v)
+	}
+
+	for _, k := range v.MapKeys() {
+		keys = append(keys, k.Interface())
+	}
+	return keys
+
 }
 
