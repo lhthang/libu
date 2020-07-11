@@ -8,6 +8,7 @@ import (
 
 type Book struct {
 	Id          primitive.ObjectID `bson:"_id" json:"id"`
+	CreateAt    time.Time          `bson:"createAt" json:"createAt"`
 	ReleaseAt   time.Time          `bson:"releaseAt" json:"releaseAt"`
 	Title       string             `bson:"title" json:"title"`
 	CategoryIds []string           `bson:"categoryIds" json:"categoryIds,omitempty"`

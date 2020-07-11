@@ -18,8 +18,11 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	bookRoute := app.Group("books")
 	bookRoute.GET("", getAllBooks(bookEntity))
-	bookRoute.GET("/:id", getBookById(bookEntity))
-	bookRoute.GET("/:id/similar", getSimilarBooks(bookEntity))
+	bookRoute.GET("/get-high-rated", getAllBooks(bookEntity))
+	bookRoute.GET("/get-latest", getAllBooks(bookEntity))
+	bookRoute.GET("/get-popular", getAllBooks(bookEntity))
+	bookRoute.GET("/book/:id/", getBookById(bookEntity))
+	bookRoute.GET("/book/:id/similar", getSimilarBooks(bookEntity))
 	bookRoute.Use(middlewares.RequireAuthenticated())
 	bookRoute.Use(middlewares.RequireAuthorization(constant.ADMIN))
 	bookRoute.POST("", createBook(bookEntity))
@@ -105,7 +108,7 @@ func createBook(entity repository.IBook) func(ctx *gin.Context) {
 // @Produce  json
 // @Param id path string true "Book ID"
 // @Success 200 {object} form.BookResponse
-// @Router /books/{id} [get]
+// @Router /books/book/{id} [get]
 func getBookById(entity repository.IBook) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id := ctx.Param("id")
@@ -127,7 +130,7 @@ func getBookById(entity repository.IBook) func(ctx *gin.Context) {
 // @Produce  json
 // @Param id path string true "Book ID"
 // @Success 200 {array} form.BookResponse
-// @Router /books/{id}/similar [get]
+// @Router /books/book/{id}/similar [get]
 func getSimilarBooks(entity repository.IBook) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id := ctx.Param("id")

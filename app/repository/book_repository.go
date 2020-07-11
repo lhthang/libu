@@ -8,6 +8,7 @@ import (
 	"libu/utils/firebase"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/araddon/dateparse"
 	"github.com/jinzhu/copier"
@@ -52,13 +53,29 @@ func NewBookEntity(resource *my_db.Resource) IBook {
 func getCategoryOfBook(book *model.Book) []model.Category {
 	var categories []model.Category
 	var validCategoryIds []string
-	for _, id := range book.CategoryIds {
-		category, _, err := CategoryEntity.GetOneByID(id)
-		if err != nil {
-			continue
-		}
-		validCategoryIds = append(validCategoryIds, id)
-		categories = append(categories, *category)
+	var wg sync.WaitGroup
+	categoryChan := make(chan *model.Category)
+	for i, _ := range book.CategoryIds {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			chann:=new(model.Category)
+			category, _, err := CategoryEntity.GetOneByID(book.CategoryIds[i])
+			if err != nil {
+				return
+			}
+			validCategoryIds = append(validCategoryIds, book.CategoryIds[i])
+			chann=category
+			categoryChan <-chann
+		}(i)
+	}
+	go func() {
+		wg.Wait()
+		close(categoryChan)
+	}()
+
+	for category := range categoryChan{
+		categories = append(categories,*category)
 	}
 	book.CategoryIds = validCategoryIds
 	return categories
@@ -67,13 +84,31 @@ func getCategoryOfBook(book *model.Book) []model.Category {
 func getAuthorsOfBook(book *model.Book) []model.Author {
 	var authors []model.Author
 	var validAuthorIds []string
-	for _, id := range book.AuthorIds {
-		author, _, err := AuthorEntity.GetOneByID(id)
-		if err != nil {
-			continue
-		}
-		validAuthorIds = append(validAuthorIds, id)
-		authors = append(authors, *author)
+
+	var wg sync.WaitGroup
+	authorChan := make(chan *model.Author)
+	for i, _ := range book.AuthorIds {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			chann := new(model.Author)
+			author, _, err := AuthorEntity.GetOneByID(book.AuthorIds[i])
+			if err != nil {
+				return
+			}
+			validAuthorIds = append(validAuthorIds, book.AuthorIds[i])
+			chann = author
+			authorChan <- chann
+		}(i)
+	}
+
+	go func() {
+		wg.Wait()
+		close(authorChan)
+	}()
+
+	for author := range authorChan{
+		authors = append(authors,*author)
 	}
 	book.AuthorIds = validAuthorIds
 	return authors
@@ -237,10 +272,10 @@ func (entity bookEntity) Create(bookForm form.BookForm) (form.BookResponse, int,
 		}
 	}
 	book := model.Book{
-		Id:        primitive.NewObjectID(),
-		ReleaseAt: releaseAt,
-		Title:     bookForm.Title,
-		// Authors:     bookForm.Authors,
+		Id:          primitive.NewObjectID(),
+		ReleaseAt:   releaseAt,
+		Title:       bookForm.Title,
+		CreateAt:    time.Now(),
 		AuthorIds:   authorIds,
 		Publisher:   bookForm.Publisher,
 		CategoryIds: categoryIds,
