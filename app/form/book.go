@@ -43,3 +43,7 @@ type SimilarBook struct {
 	Id    primitive.ObjectID `bson:"_id"`
 	Score int                `bson:"total"`
 }
+
+type BookResults struct {
+	Id string `bson:"_id"`
+}

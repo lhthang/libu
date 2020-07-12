@@ -31,10 +31,12 @@ type BookChan struct {
 	Err error
 }
 
+
 type IBook interface {
 	GetSimilarBooks(id string) ([]form.BookResponse, int, error)
-	GetAll(skip,limit int64) ([]form.BookResponse, int, error)
-	GetNewBooks(skip,limit int64) ([]form.BookResponse, int, error)
+	GetAll(skip, limit int64) ([]form.BookResponse, int, error)
+	GetPopularBooks(skips, limit int64) ([]form.BookResponse, int, error)
+	GetNewBooks(skip, limit int64) ([]form.BookResponse, int, error)
 	Search(keyword string) ([]form.BookResponse, int, error)
 	Create(bookForm form.BookForm) (form.BookResponse, int, error)
 	GetOneByID(id string) (form.BookResponse, int, error)
@@ -60,14 +62,14 @@ func getCategoryOfBook(book *model.Book) []model.Category {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			chann:=new(model.Category)
+			chann := new(model.Category)
 			category, _, err := CategoryEntity.GetOneByID(book.CategoryIds[i])
 			if err != nil {
 				return
 			}
 			validCategoryIds = append(validCategoryIds, book.CategoryIds[i])
-			chann=category
-			categoryChan <-chann
+			chann = category
+			categoryChan <- chann
 		}(i)
 	}
 	go func() {
@@ -75,8 +77,8 @@ func getCategoryOfBook(book *model.Book) []model.Category {
 		close(categoryChan)
 	}()
 
-	for category := range categoryChan{
-		categories = append(categories,*category)
+	for category := range categoryChan {
+		categories = append(categories, *category)
 	}
 	book.CategoryIds = validCategoryIds
 	return categories
@@ -108,8 +110,8 @@ func getAuthorsOfBook(book *model.Book) []model.Author {
 		close(authorChan)
 	}()
 
-	for author := range authorChan{
-		authors = append(authors,*author)
+	for author := range authorChan {
+		authors = append(authors, *author)
 	}
 	book.AuthorIds = validAuthorIds
 	return authors
@@ -123,13 +125,13 @@ func getReviewsOfBook(book model.Book) *form.ReviewResponse {
 	return reviewResp
 }
 
-func (entity bookEntity) GetAll(skip,limit int64) ([]form.BookResponse, int, error) {
+func (entity bookEntity) GetAll(skip, limit int64) ([]form.BookResponse, int, error) {
 	ctx, cancel := initContext()
 
 	defer cancel()
 	var booksResp []form.BookResponse
-	cursor, err := entity.repo.Find(ctx, bson.M{},&options.FindOptions{
-		Skip: &skip,
+	cursor, err := entity.repo.Find(ctx, bson.M{}, &options.FindOptions{
+		Skip:  &skip,
 		Limit: &limit,
 	})
 	if err != nil {
@@ -154,14 +156,14 @@ func (entity bookEntity) GetAll(skip,limit int64) ([]form.BookResponse, int, err
 	return booksResp, http.StatusOK, nil
 }
 
-func (entity bookEntity) GetNewBooks(skip,limit int64) ([]form.BookResponse, int, error) {
+func (entity bookEntity) GetNewBooks(skip, limit int64) ([]form.BookResponse, int, error) {
 	ctx, cancel := initContext()
 
 	defer cancel()
 	var booksResp []form.BookResponse
-	cursor, err := entity.repo.Find(ctx, bson.M{},&options.FindOptions{
-		Sort: bson.D{{"createAt",-1}},
-		Skip: &skip,
+	cursor, err := entity.repo.Find(ctx, bson.M{}, &options.FindOptions{
+		Sort:  bson.D{{"createAt", -1}},
+		Skip:  &skip,
 		Limit: &limit,
 	})
 	if err != nil {
@@ -183,6 +185,67 @@ func (entity bookEntity) GetNewBooks(skip,limit int64) ([]form.BookResponse, int
 			Authors:    getAuthorsOfBook(&book),
 		})
 	}
+	return booksResp, http.StatusOK, nil
+}
+
+func (entity bookEntity) GetPopularBooks(skip, limit int64) ([]form.BookResponse, int, error) {
+	ctx, cancel := initContext()
+
+	defer cancel()
+
+	var booksResp []form.BookResponse
+
+	var bookIds []string
+	pipeline := []bson.M{{"$project": bson.M{"_id": bson.M{"$toString": "$_id"}}},
+		{"$lookup": bson.M{"from": "review", "localField": "_id", "foreignField": "bookId", "as": "reviews"}},
+		{"$project": bson.M{"_id": 1, "totalReviews": bson.M{"$cond": bson.M{"if": bson.M{"$isArray": "$reviews"}, "then": bson.M{"$size": "$reviews"}, "else": 0}}}},
+		{"$sort": bson.M{"totalReviews": -1}},
+		{"$skip": skip},
+		{"$limit": limit},
+	}
+
+	cursor, err := entity.repo.Aggregate(ctx, pipeline)
+
+	if err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+	for cursor.Next(ctx) {
+		//logrus.Printf("%v",cursor)
+		var book form.BookResults
+		err := cursor.Decode(&book)
+		if err != nil {
+			logrus.Println(err)
+			continue
+		}
+		bookIds = append(bookIds,book.Id)
+	}
+
+	var wg sync.WaitGroup
+	bookChan := make(chan *form.BookResponse)
+	for i, _ := range bookIds{
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			chann := new(form.BookResponse)
+			book, _, err := entity.GetOneByID(bookIds[i])
+			if err != nil {
+				return
+			}
+			//validAuthorIds = append(validAuthorIds, book.AuthorIds[i])
+			chann = &book
+			bookChan <- chann
+		}(i)
+	}
+
+	go func() {
+		wg.Wait()
+		close(bookChan)
+	}()
+
+	for book := range bookChan {
+		booksResp = append(booksResp, *book)
+	}
+
 	return booksResp, http.StatusOK, nil
 }
 

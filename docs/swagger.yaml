@@ -649,6 +649,32 @@ paths:
       summary: Get new books
       tags:
       - BookController
+  /books/get-popular:
+    get:
+      consumes:
+      - application/json
+      description: Get popular books
+      parameters:
+      - description: Skip
+        in: query
+        name: skip
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/form.BookResponse'
+            type: array
+      summary: Get popular books
+      tags:
+      - BookController
   /books/upload:
     post:
       consumes:
