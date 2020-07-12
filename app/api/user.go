@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"libu/app/form"
 	"libu/app/repository"
 	"libu/middlewares"
@@ -151,13 +150,12 @@ func getUserById(userEntity repository.IUser) func(ctx *gin.Context) {
 func getUserByUsername(userEntity repository.IUser) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		username := ctx.Param("username")
-		fmt.Println(username)
 		userRequest := jwt.GetUsername(ctx)
 		if userRequest != username {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": "can not get this user"})
 			return
 		}
-		user, code, err := userEntity.GetOneByUsername(username)
+		user, code, err := userEntity.GetOneDetailByUsername(username)
 		response := map[string]interface{}{
 			"user":  user,
 			"error": err2.GetErrorMessage(err),
