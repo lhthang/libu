@@ -190,14 +190,16 @@ definitions:
     type: object
   form.UpdateInformation:
     properties:
+      dataLink:
+        type: string
       fullName:
         type: string
       oldPassword:
         type: string
       password:
         type: string
-    required:
-    - fullName
+      profileAvatar:
+        type: string
     type: object
   form.UpdateUser:
     properties:
@@ -229,6 +231,8 @@ definitions:
     type: object
   form.UserResponse:
     properties:
+      dataLink:
+        type: string
       favoriteBooks:
         items:
           $ref: '#/definitions/form.BookResponse'
@@ -248,6 +252,8 @@ definitions:
       fullName:
         type: string
       id:
+        type: string
+      profileAvatar:
         type: string
       roles:
         items:
@@ -308,6 +314,8 @@ definitions:
     type: object
   model.User:
     properties:
+      dataLink:
+        type: string
       favoriteCategoryIds:
         items:
           type: string
@@ -321,6 +329,8 @@ definitions:
       id:
         type: string
       password:
+        type: string
+      profileAvatar:
         type: string
       roles:
         items:
@@ -722,7 +732,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/string'
       security:
       - ApiKeyAuth: []
       summary: Upload file

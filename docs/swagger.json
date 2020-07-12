@@ -531,7 +531,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/string"
                         }
                     }
                 }
@@ -1726,10 +1726,10 @@
         },
         "form.UpdateInformation": {
             "type": "object",
-            "required": [
-                "fullName"
-            ],
             "properties": {
+                "dataLink": {
+                    "type": "string"
+                },
                 "fullName": {
                     "type": "string"
                 },
@@ -1737,6 +1737,9 @@
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "profileAvatar": {
                     "type": "string"
                 }
             }
@@ -1786,6 +1789,9 @@
         "form.UserResponse": {
             "type": "object",
             "properties": {
+                "dataLink": {
+                    "type": "string"
+                },
                 "favoriteBooks": {
                     "type": "array",
                     "items": {
@@ -1814,6 +1820,9 @@
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "profileAvatar": {
                     "type": "string"
                 },
                 "roles": {
@@ -1907,6 +1916,9 @@
         "model.User": {
             "type": "object",
             "properties": {
+                "dataLink": {
+                    "type": "string"
+                },
                 "favoriteCategoryIds": {
                     "type": "array",
                     "items": {
@@ -1926,6 +1938,9 @@
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "profileAvatar": {
                     "type": "string"
                 },
                 "roles": {
