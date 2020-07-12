@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"libu/app/form"
 	"libu/app/repository"
 	"libu/middlewares"
@@ -23,8 +24,9 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	userRoute := app.Group("/users")
 	userRoute.GET("/get-all", getAllUSer(userEntity))
-	userRoute.GET("/get/:id", getUserById(userEntity))
 	userRoute.Use(middlewares.RequireAuthenticated())
+	userRoute.GET("/get-username/:username", getUserByUsername(userEntity))
+	userRoute.GET("/get/:id", getUserById(userEntity))
 	userRoute.PUT("/update/:username", updateUser(userEntity))
 	userRoute.PUT("/favorites", addFavorite(userEntity))
 	// when need authentication
@@ -120,12 +122,42 @@ func getAllUSer(userEntity repository.IUser) func(ctx *gin.Context) {
 // @Description Get user by Id
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
+// @Param id path string true "Id"
 // @Success 200 {object} form.UserResponse
 // @Router /users/get/{id} [get]
 func getUserById(userEntity repository.IUser) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id := ctx.Param("id")
 		user, code, err := userEntity.GetOneById(id)
+		response := map[string]interface{}{
+			"user":  user,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// GetUserByUsername godoc
+// @Tags UserController
+// @Summary Get user by Username
+// @Description Get user by Username
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param username path string true "Username"
+// @Success 200 {object} form.UserResponse
+// @Router /users/get-username/{username} [get]
+func getUserByUsername(userEntity repository.IUser) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		username := ctx.Param("username")
+		fmt.Println(username)
+		userRequest := jwt.GetUsername(ctx)
+		if userRequest != username {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": "can not get this user"})
+			return
+		}
+		user, code, err := userEntity.GetOneByUsername(username)
 		response := map[string]interface{}{
 			"user":  user,
 			"error": err2.GetErrorMessage(err),

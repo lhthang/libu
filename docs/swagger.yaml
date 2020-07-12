@@ -718,7 +718,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/string'
+            type: string
       security:
       - ApiKeyAuth: []
       summary: Upload file
@@ -1142,11 +1142,17 @@ paths:
       summary: Add favorite book
       tags:
       - UserController
-  /users/get/{id}:
+  /users/get-username/{username}:
     get:
       consumes:
       - application/json
-      description: Get user by Id
+      description: Get user by Username
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1154,6 +1160,31 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/form.UserResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by Username
+      tags:
+      - UserController
+  /users/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user by Id
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.UserResponse'
+      security:
+      - ApiKeyAuth: []
       summary: Get user by Id
       tags:
       - UserController
