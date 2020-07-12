@@ -380,6 +380,46 @@
                 }
             }
         },
+        "/books/get-high-rated": {
+            "get": {
+                "description": "Get high rated books",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BookController"
+                ],
+                "summary": "Get high rated books",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Skip",
+                        "name": "skip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/form.BookResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/books/get-latest": {
             "get": {
                 "description": "Get new books",

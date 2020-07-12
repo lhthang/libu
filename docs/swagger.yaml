@@ -623,6 +623,32 @@ paths:
       summary: Get similar books
       tags:
       - BookController
+  /books/get-high-rated:
+    get:
+      consumes:
+      - application/json
+      description: Get high rated books
+      parameters:
+      - description: Skip
+        in: query
+        name: skip
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/form.BookResponse'
+            type: array
+      summary: Get high rated books
+      tags:
+      - BookController
   /books/get-latest:
     get:
       consumes:

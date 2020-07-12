@@ -35,6 +35,7 @@ type BookChan struct {
 type IBook interface {
 	GetSimilarBooks(id string) ([]form.BookResponse, int, error)
 	GetAll(skip, limit int64) ([]form.BookResponse, int, error)
+	GetHighRatedBooks(skips, limit int64) ([]form.BookResponse, int, error)
 	GetPopularBooks(skips, limit int64) ([]form.BookResponse, int, error)
 	GetNewBooks(skip, limit int64) ([]form.BookResponse, int, error)
 	Search(keyword string) ([]form.BookResponse, int, error)
@@ -188,6 +189,48 @@ func (entity bookEntity) GetNewBooks(skip, limit int64) ([]form.BookResponse, in
 	return booksResp, http.StatusOK, nil
 }
 
+func (entity bookEntity) GetHighRatedBooks(skip, limit int64) ([]form.BookResponse, int, error) {
+	ctx, cancel := initContext()
+
+	defer cancel()
+
+	var booksResp []form.BookResponse
+
+	//var bookIds []primitive.ObjectID
+	pipeline := []bson.M{{"$project": bson.M{"_id": bson.M{"$toString": "$_id"},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
+		{"$lookup": bson.M{"from": "review", "localField": "_id", "foreignField": "bookId", "as": "reviews"}},
+		{"$project": bson.M{"_id": 1, "rating": bson.M{"$avg": "$reviews.rating"},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
+		{"$sort": bson.M{"rating": -1}},
+		{"$skip": skip},
+		{"$limit": limit},
+		{"$project": bson.M{"_id": bson.M{"$toObjectId": "$_id"},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
+	}
+
+	cursor, err := entity.repo.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+	for cursor.Next(ctx) {
+		var book model.Book
+		err := cursor.Decode(&book)
+		if err != nil {
+			logrus.Println(err)
+			continue
+		}
+		reviewResp := getReviewsOfBook(book)
+		booksResp = append(booksResp, form.BookResponse{
+			Book: &book,
+			//Reviews:    reviewResp.Reviews,
+			Rating:     reviewResp.AvgRating,
+			Categories: getCategoryOfBook(&book),
+			Authors:    getAuthorsOfBook(&book),
+		})
+	}
+
+
+	return booksResp, http.StatusOK, nil
+}
+
 func (entity bookEntity) GetPopularBooks(skip, limit int64) ([]form.BookResponse, int, error) {
 	ctx, cancel := initContext()
 
@@ -195,13 +238,13 @@ func (entity bookEntity) GetPopularBooks(skip, limit int64) ([]form.BookResponse
 
 	var booksResp []form.BookResponse
 
-	var bookIds []string
-	pipeline := []bson.M{{"$project": bson.M{"_id": bson.M{"$toString": "$_id"}}},
+	pipeline := []bson.M{{"$project": bson.M{"_id": bson.M{"$toString": "$_id"},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
 		{"$lookup": bson.M{"from": "review", "localField": "_id", "foreignField": "bookId", "as": "reviews"}},
-		{"$project": bson.M{"_id": 1, "totalReviews": bson.M{"$cond": bson.M{"if": bson.M{"$isArray": "$reviews"}, "then": bson.M{"$size": "$reviews"}, "else": 0}}}},
+		{"$project": bson.M{"_id": 1, "totalReviews": bson.M{"$cond": bson.M{"if": bson.M{"$isArray": "$reviews"}, "then": bson.M{"$size": "$reviews"}, "else": 0}},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
 		{"$sort": bson.M{"totalReviews": -1}},
 		{"$skip": skip},
 		{"$limit": limit},
+		{"$project": bson.M{"_id": bson.M{"$toObjectId": "$_id"},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
 	}
 
 	cursor, err := entity.repo.Aggregate(ctx, pipeline)
@@ -210,40 +253,20 @@ func (entity bookEntity) GetPopularBooks(skip, limit int64) ([]form.BookResponse
 		return nil, http.StatusBadRequest, err
 	}
 	for cursor.Next(ctx) {
-		//logrus.Printf("%v",cursor)
-		var book form.BookResults
+		var book model.Book
 		err := cursor.Decode(&book)
 		if err != nil {
 			logrus.Println(err)
 			continue
 		}
-		bookIds = append(bookIds,book.Id)
-	}
-
-	var wg sync.WaitGroup
-	bookChan := make(chan *form.BookResponse)
-	for i, _ := range bookIds{
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			chann := new(form.BookResponse)
-			book, _, err := entity.GetOneByID(bookIds[i])
-			if err != nil {
-				return
-			}
-			//validAuthorIds = append(validAuthorIds, book.AuthorIds[i])
-			chann = &book
-			bookChan <- chann
-		}(i)
-	}
-
-	go func() {
-		wg.Wait()
-		close(bookChan)
-	}()
-
-	for book := range bookChan {
-		booksResp = append(booksResp, *book)
+		reviewResp := getReviewsOfBook(book)
+		booksResp = append(booksResp, form.BookResponse{
+			Book: &book,
+			//Reviews:    reviewResp.Reviews,
+			Rating:     reviewResp.AvgRating,
+			Categories: getCategoryOfBook(&book),
+			Authors:    getAuthorsOfBook(&book),
+		})
 	}
 
 	return booksResp, http.StatusOK, nil

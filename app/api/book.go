@@ -19,7 +19,7 @@ func ApplyBookAPI(app *gin.RouterGroup, resource *my_db.Resource) {
 
 	bookRoute := app.Group("books")
 	bookRoute.GET("", getAllBooks(bookEntity))
-	bookRoute.GET("/get-high-rated", getAllBooks(bookEntity))
+	bookRoute.GET("/get-high-rated", getHighRatedBooks(bookEntity))
 	bookRoute.GET("/get-latest", getNewBooks(bookEntity))
 	bookRoute.GET("/get-popular", getPopularBooks(bookEntity))
 	bookRoute.GET("/book/:id/", getBookById(bookEntity))
@@ -143,6 +143,42 @@ func getPopularBooks(entity repository.IBook) func(ctx *gin.Context) {
 		}
 
 		books, code, err := entity.GetPopularBooks(skip,limit)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+			return
+		}
+
+		response := map[string]interface{}{
+			"books": books,
+			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+// GetPopularBooks godoc
+// @Tags BookController
+// @Summary Get high rated books
+// @Description Get high rated books
+// @Accept  json
+// @Produce  json
+// @Param skip query int false "Skip"
+// @Param limit query int false "Limit"
+// @Success 200 {array} form.BookResponse
+// @Router /books/get-high-rated [get]
+func getHighRatedBooks(entity repository.IBook) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+
+		skip, err := strconv.ParseInt(ctx.Query("skip"), 10, 64)
+		if err != nil {
+			skip = 0
+		}
+		limit, err := strconv.ParseInt(ctx.Query("limit"), 10, 64)
+		if err != nil {
+			limit = 100000
+		}
+
+		books, code, err := entity.GetHighRatedBooks(skip,limit)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 			return
