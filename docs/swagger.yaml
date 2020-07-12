@@ -212,6 +212,10 @@ definitions:
     type: object
   form.User:
     properties:
+      favoriteCategoryIds:
+        items:
+          type: string
+        type: array
       fullName:
         type: string
       password:

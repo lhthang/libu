@@ -1781,6 +1781,12 @@ var doc = `{
                 "username"
             ],
             "properties": {
+                "favoriteCategoryIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "fullName": {
                     "type": "string"
                 },

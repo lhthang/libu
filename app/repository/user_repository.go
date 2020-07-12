@@ -132,6 +132,11 @@ func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error
 	ctx, cancel := initContext()
 	defer cancel()
 
+	favoriteCtgIds := []string{}
+	if userForm.FavoriteCategoryIds != nil {
+		favoriteCtgIds = userForm.FavoriteCategoryIds
+	}
+
 	user := model.User{
 		Id:                 primitive.NewObjectID(),
 		Username:           userForm.Username,
@@ -139,7 +144,7 @@ func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error
 		Password:           bcrypt.HashPassword(userForm.Password),
 		Roles:              []string{constant.ADMIN, constant.USER},
 		FavoriteIds:        []string{},
-		FavoriteCategoryId: []string{},
+		FavoriteCategoryId: favoriteCtgIds,
 	}
 	found, _, _ := entity.GetOneByUsername(user.Username)
 	if found != nil {
