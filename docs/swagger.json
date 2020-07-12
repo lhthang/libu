@@ -531,7 +531,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/string"
+                            "type": "string"
                         }
                     }
                 }
@@ -1276,8 +1276,50 @@
                 }
             }
         },
+        "/users/get-username/{username}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get user by Username",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserController"
+                ],
+                "summary": "Get user by Username",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/form.UserResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/get/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get user by Id",
                 "consumes": [
                     "application/json"
@@ -1289,6 +1331,15 @@
                     "UserController"
                 ],
                 "summary": "Get user by Id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1715,6 +1766,12 @@
                 "username"
             ],
             "properties": {
+                "favoriteCategoryIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "fullName": {
                     "type": "string"
                 },

@@ -3,9 +3,10 @@ package form
 import "libu/app/model"
 
 type User struct {
-	Username string `json:"username" binding:"required"`
-	FullName string `json:"fullName" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username            string   `json:"username" binding:"required"`
+	FullName            string   `json:"fullName" binding:"required"`
+	Password            string   `json:"password" binding:"required"`
+	FavoriteCategoryIds []string `json:"favoriteCategoryIds"`
 }
 
 type LoginUser struct {

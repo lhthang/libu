@@ -29,6 +29,7 @@ type userEntity struct {
 type IUser interface {
 	GetAll() ([]form.UserResponse, int, error)
 	GetOneById(id string) (*form.UserResponse, int, error)
+	GetOneDetailByUsername(username string) (*form.UserResponse, int, error)
 	GetOneByUsername(username string) (*model.User, int, error)
 	CreateOne(userForm form.User) (*model.User, int, error)
 	UpdateUser(username string, userForm form.UpdateInformation) (*form.UserResponse, int, error)
@@ -101,9 +102,33 @@ func (entity *userEntity) GetOneById(id string) (*form.UserResponse, int, error)
 	return &userResp, http.StatusOK, nil
 }
 
+func (entity *userEntity) GetOneDetailByUsername(username string) (*form.UserResponse, int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+
+	var user model.User
+	err :=
+		entity.repo.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+
+	if err != nil {
+		logrus.Print(err)
+		return nil, 400, err
+	}
+
+	userResp := getUserResponse(&user)
+	userResp.Books = getFavoriteBooks(&user)
+	userResp.Categories = getFavoriteCategories(&user)
+	return &userResp, http.StatusOK, nil
+}
+
 func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error) {
 	ctx, cancel := initContext()
 	defer cancel()
+
+	favoriteCtgIds := []string{}
+	if userForm.FavoriteCategoryIds != nil {
+		favoriteCtgIds = userForm.FavoriteCategoryIds
+	}
 
 	user := model.User{
 		Id:                 primitive.NewObjectID(),
@@ -112,9 +137,9 @@ func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error
 		Password:           bcrypt.HashPassword(userForm.Password),
 		Roles:              []string{constant.USER},
 		FavoriteIds:        []string{},
-		FavoriteCategoryId: []string{},
 		ProfileAvatar:      "",
 		DataLink:           "",
+		FavoriteCategoryId: favoriteCtgIds,
 	}
 	found, _, _ := entity.GetOneByUsername(user.Username)
 	if found != nil {
