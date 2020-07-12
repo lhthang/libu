@@ -60,14 +60,7 @@ func (entity *userEntity) GetAll() ([]form.UserResponse, int, error) {
 		if err != nil {
 			logrus.Print(err)
 		}
-		usersList = append(usersList, form.UserResponse{
-			Id:                  user.Id.Hex(),
-			Username:            user.Username,
-			FullName:            user.FullName,
-			FavoriteIds:         user.FavoriteIds,
-			FavoriteCategoryIds: user.FavoriteCategoryId,
-			Roles:               user.Roles,
-		})
+		usersList = append(usersList, getUserResponse(&user))
 	}
 	return usersList, http.StatusOK, nil
 }
@@ -104,7 +97,7 @@ func (entity *userEntity) GetOneById(id string) (*form.UserResponse, int, error)
 
 	userResp := getUserResponse(&user)
 	userResp.Books = getFavoriteBooks(&user)
-	userResp.Categories =getFavoriteCategories(&user)
+	userResp.Categories = getFavoriteCategories(&user)
 	return &userResp, http.StatusOK, nil
 }
 
@@ -117,9 +110,11 @@ func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error
 		Username:           userForm.Username,
 		FullName:           userForm.FullName,
 		Password:           bcrypt.HashPassword(userForm.Password),
-		Roles:              []string{constant.ADMIN, constant.USER},
+		Roles:              []string{constant.USER},
 		FavoriteIds:        []string{},
 		FavoriteCategoryId: []string{},
+		ProfileAvatar:      "",
+		DataLink:           "",
 	}
 	found, _, _ := entity.GetOneByUsername(user.Username)
 	if found != nil {
@@ -147,6 +142,19 @@ func (entity *userEntity) UpdateUser(username string, userForm form.UpdateInform
 
 	password := user.Password
 	newPassword := userForm.Password
+
+	if userForm.FullName==""{
+		userForm.FullName=user.FullName
+	}
+
+	if userForm.ProfileAvatar==""{
+		userForm.ProfileAvatar=user.ProfileAvatar
+	}
+
+	if userForm.DataLink==""{
+		userForm.DataLink=user.DataLink
+	}
+
 	isUpdatePw := false
 	if userForm.Password != "" && userForm.OldPassword != "" {
 		isUpdatePw = true
@@ -185,6 +193,8 @@ func getUserResponse(user *model.User) form.UserResponse {
 		FavoriteIds:         user.FavoriteIds,
 		FavoriteCategoryIds: user.FavoriteCategoryId,
 		Roles:               user.Roles,
+		ProfileAvatar:       user.ProfileAvatar,
+		DataLink:            user.DataLink,
 	}
 	return userResp
 }
@@ -291,42 +301,41 @@ func (entity *userEntity) UpdateFavorite(favoriteForm form.FavoriteForm, usernam
 
 	update := map[string]interface{}{}
 
-	fields :=map[string]interface{}{}
+	fields := map[string]interface{}{}
 
 	//prepareUpdate
-	if favoriteForm.Action == constant.ADD{
-		if favoriteForm.FavoriteId!=""{
+	if favoriteForm.Action == constant.ADD {
+		if favoriteForm.FavoriteId != "" {
 			if arrays.Contains(user.FavoriteIds, favoriteForm.FavoriteId) {
 				return nil, http.StatusBadRequest, errors.New("this book is already added to your favorite list")
 			}
-			fields["favoriteIds"] =favoriteForm.FavoriteId
+			fields["favoriteIds"] = favoriteForm.FavoriteId
 		}
-		if favoriteForm.FavoriteCategoryId!=""{
+		if favoriteForm.FavoriteCategoryId != "" {
 			if arrays.Contains(user.FavoriteCategoryId, favoriteForm.FavoriteCategoryId) {
 				return nil, http.StatusBadRequest, errors.New("this category is already added to your favorite list")
 			}
-			fields["favoriteCategoryIds"] =favoriteForm.FavoriteCategoryId
+			fields["favoriteCategoryIds"] = favoriteForm.FavoriteCategoryId
 
 		}
 		update["$push"] = fields
 
 	}
-	if favoriteForm.Action == constant.REMOVE{
-		if favoriteForm.FavoriteId!=""{
+	if favoriteForm.Action == constant.REMOVE {
+		if favoriteForm.FavoriteId != "" {
 			if !arrays.Contains(user.FavoriteIds, favoriteForm.FavoriteId) {
 				return nil, http.StatusBadRequest, errors.New("this book is not added to your favorite list")
 			}
-			fields["favoriteIds"] =favoriteForm.FavoriteId
+			fields["favoriteIds"] = favoriteForm.FavoriteId
 		}
-		if favoriteForm.FavoriteCategoryId!=""{
+		if favoriteForm.FavoriteCategoryId != "" {
 			if !arrays.Contains(user.FavoriteCategoryId, favoriteForm.FavoriteCategoryId) {
 				return nil, http.StatusBadRequest, errors.New("this category is not added to your favorite list")
 			}
-			fields["favoriteCategoryIds"] =favoriteForm.FavoriteCategoryId
+			fields["favoriteCategoryIds"] = favoriteForm.FavoriteCategoryId
 		}
 		update["$pull"] = fields
 	}
-
 
 	isReturnNewDoc := options.After
 	opts := &options.FindOneAndUpdateOptions{

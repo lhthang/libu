@@ -10,4 +10,6 @@ type User struct {
 	Roles              []string           `bson:"roles" json:"roles"`
 	FavoriteIds        []string           `bson:"favoriteIds" json:"favoriteIds"`
 	FavoriteCategoryId []string           `bson:"favoriteCategoryIds" json:"favoriteCategoryIds"`
+	ProfileAvatar      string             `bson:"profileAvatar" json:"profileAvatar"`
+	DataLink           string             `bson:"dataLink" json:"dataLink"`
 }

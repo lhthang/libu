@@ -14,9 +14,11 @@ type LoginUser struct {
 }
 
 type UpdateInformation struct {
-	FullName    string `json:"fullName" binding:"required"`
-	OldPassword string `json:"oldPassword,omitempty"`
-	Password    string `json:"password,omitempty"`
+	FullName      string `json:"fullName,omitempty"`
+	OldPassword   string `json:"oldPassword,omitempty"`
+	Password      string `json:"password,omitempty"`
+	ProfileAvatar string `json:"profileAvatar"`
+	DataLink      string `json:"dataLink"`
 }
 
 type UpdateUser struct {
@@ -33,6 +35,8 @@ type UserResponse struct {
 	Books               []BookResponse   `json:"favoriteBooks"`
 	Categories          []model.Category `json:"favoriteCategories"`
 	Roles               []string         `json:"roles"`
+	ProfileAvatar       string           `json:"profileAvatar"`
+	DataLink            string           `json:"dataLink"`
 }
 
 type FavoriteForm struct {
