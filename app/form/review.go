@@ -16,6 +16,7 @@ type ActionForm struct {
 
 type ReviewResp struct {
 	*model.Review
+	User        UserComment  `json:"user"`
 	Reports     []model.Report `json:"reports"`
 	UpvoteCount int            `json:"upvoteCount"`
 	ReportCount int            `json:"reportCount"`

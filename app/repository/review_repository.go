@@ -51,6 +51,20 @@ func getReportsOfReview(review model.Review) []model.Report {
 	return reports
 }
 
+func getUserOfReview(review model.Review) *form.UserComment {
+	user, _, err := UserEntity.GetOneByUsername(review.Username)
+	if err != nil {
+		return nil
+	}
+	resp:=form.UserComment{
+		Id:            user.Id.Hex(),
+		Username:      user.Username,
+		FullName:      user.FullName,
+		ProfileAvatar: user.ProfileAvatar,
+	}
+	return &resp
+}
+
 func (entity *reviewEntity) GetAll(report int64) ([]form.ReviewResp, int, error) {
 	ctx, cancel := initContext()
 	defer cancel()
@@ -232,12 +246,13 @@ func (entity *reviewEntity) GetByBookId(bookId string) (*form.ReviewResponse, in
 			continue
 		}
 		reports := getReportsOfReview(review)
-
+		user :=getUserOfReview(review)
 		resp := form.ReviewResp{
 			Review:      &review,
 			Reports:     reports,
 			UpvoteCount: len(review.Upvotes),
 			ReportCount: len(reports),
+			User: *user,
 		}
 		reviewResp.ReviewResp = append(reviewResp.ReviewResp, resp)
 	}

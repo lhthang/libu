@@ -40,6 +40,13 @@ type UserResponse struct {
 	DataLink            string           `json:"dataLink"`
 }
 
+type UserComment struct {
+	Id string `json:"id"`
+	Username            string           `json:"username"`
+	FullName            string           `json:"fullName"`
+	ProfileAvatar       string           `json:"profileAvatar"`
+}
+
 type FavoriteForm struct {
 	FavoriteId         string `json:"favoriteId"`
 	FavoriteCategoryId string `json:"favoriteCategoryId"`
