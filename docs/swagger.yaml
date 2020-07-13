@@ -625,6 +625,14 @@ paths:
         name: id
         required: true
         type: string
+      - description: Skip
+        in: query
+        name: skip
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
@@ -703,6 +711,37 @@ paths:
         in: query
         name: limit
         type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/form.BookResponse'
+            type: array
+      summary: Get popular books
+      tags:
+      - BookController
+  /books/recommend:
+    get:
+      consumes:
+      - application/json
+      description: Get popular books
+      parameters:
+      - description: Skip
+        in: query
+        name: skip
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Categories
+        in: query
+        name: categories
+        required: true
+        type: string
       produces:
       - application/json
       responses:
