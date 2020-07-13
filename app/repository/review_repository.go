@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"libu/app/form"
 	"libu/app/model"
 	"libu/my_db"
@@ -117,24 +116,20 @@ func (entity *reviewEntity) GetOneById(id string) (form.ReviewResp, int, error) 
 
 	var review model.Review
 	objID, err := primitive.ObjectIDFromHex(id)
-	fmt.Println("0")
+
 	if err != nil {
 		return form.ReviewResp{}, getHTTPCode(err), err
 	}
-	fmt.Println("1")
 
 	err = entity.repo.FindOne(ctx, bson.M{"_id": objID}).Decode(&review)
 
 	if err != nil {
-		fmt.Println("2")
 		return form.ReviewResp{}, http.StatusNotFound, err
 	}
 
 	if err != nil {
-		fmt.Println("3")
 		return form.ReviewResp{}, http.StatusBadRequest, err
 	}
-	fmt.Println("4")
 	reports := getReportsOfReview(review)
 
 	reviewResp := form.ReviewResp{
