@@ -1726,6 +1726,10 @@
                         "type": "string"
                     }
                 },
+                "user": {
+                    "type": "object",
+                    "$ref": "#/definitions/form.UserComment"
+                },
                 "username": {
                     "type": "string"
                 }
@@ -1838,6 +1842,23 @@
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "form.UserComment": {
+            "type": "object",
+            "properties": {
+                "fullName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "profileAvatar": {
                     "type": "string"
                 },
                 "username": {

@@ -151,6 +151,9 @@ definitions:
         items:
           type: string
         type: array
+      user:
+        $ref: '#/definitions/form.UserComment'
+        type: object
       username:
         type: string
     type: object
@@ -228,6 +231,17 @@ definitions:
     - fullName
     - password
     - username
+    type: object
+  form.UserComment:
+    properties:
+      fullName:
+        type: string
+      id:
+        type: string
+      profileAvatar:
+        type: string
+      username:
+        type: string
     type: object
   form.UserResponse:
     properties:
