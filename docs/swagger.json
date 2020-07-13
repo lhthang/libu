@@ -590,7 +590,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/string"
+                            "type": "string"
                         }
                     }
                 }
@@ -1683,7 +1683,7 @@
                     "type": "string"
                 },
                 "rating": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "username": {
                     "type": "string"
@@ -1703,7 +1703,7 @@
                     "type": "string"
                 },
                 "rating": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "reportCount": {
                     "type": "integer"
@@ -1977,7 +1977,7 @@
                     "type": "string"
                 },
                 "rating": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "updateAt": {
                     "type": "string"
