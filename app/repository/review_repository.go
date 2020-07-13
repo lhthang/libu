@@ -76,11 +76,11 @@ func (entity *reviewEntity) GetAll(report int64) ([]form.ReviewResp, int, error)
 		return []form.ReviewResp{}, http.StatusBadRequest, err
 	}
 
+	logrus.Println(arrayIds)
+
 	query := map[string]interface{}{}
 	if len(arrayIds) > 0 {
 		query["_id"] = bson.M{"$in": arrayIds}
-	} else {
-		return []form.ReviewResp{}, http.StatusOK, nil
 	}
 
 	cursor, err := entity.repo.Find(ctx, query)
