@@ -121,7 +121,7 @@ definitions:
       id:
         type: string
       rating:
-        type: integer
+        type: number
       username:
         type: string
     required:
@@ -136,7 +136,7 @@ definitions:
       id:
         type: string
       rating:
-        type: integer
+        type: number
       reportCount:
         type: integer
       reports:
@@ -316,7 +316,7 @@ definitions:
       id:
         type: string
       rating:
-        type: integer
+        type: number
       updateAt:
         type: string
       upvotes:
@@ -785,7 +785,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/string'
+            type: string
       security:
       - ApiKeyAuth: []
       summary: Upload file

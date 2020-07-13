@@ -3,11 +3,12 @@ package form
 import "libu/app/model"
 
 type ReviewForm struct {
-	Id       string `json:"id"`
-	Comment  string `json:"comment"`
-	BookID   string `json:"bookId" binding:"required"`
-	Username string `son:"username"`
-	Rating   int    `json:"rating" binding:"oneof=1 2 3 4 5"`
+	Id       string  `json:"id"`
+	Comment  string  `json:"comment"`
+	BookID   string  `json:"bookId" binding:"required"`
+	Username string  `son:"username"`
+	Rating   float32 `json:"rating" binding:"min=0,max=5"`
+	// Rating   int    `json:"rating" binding:"oneof=1 2 3 4 5"`
 }
 
 type ActionForm struct {
@@ -16,7 +17,7 @@ type ActionForm struct {
 
 type ReviewResp struct {
 	*model.Review
-	User        UserComment  `json:"user"`
+	User        UserComment    `json:"user"`
 	Reports     []model.Report `json:"reports"`
 	UpvoteCount int            `json:"upvoteCount"`
 	ReportCount int            `json:"reportCount"`
