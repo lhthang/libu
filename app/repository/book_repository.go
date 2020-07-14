@@ -132,8 +132,9 @@ func (entity bookEntity) GetAll(skip, limit int64) ([]form.BookResponse, int, er
 	defer cancel()
 	var booksResp []form.BookResponse
 	cursor, err := entity.repo.Find(ctx, bson.M{}, &options.FindOptions{
-		Skip:  &skip,
 		Limit: &limit,
+		Skip:  &skip,
+		Sort:  bson.D{{"createAt",-1}},
 	})
 	if err != nil {
 		return booksResp, getHTTPCode(err), err
@@ -169,6 +170,7 @@ func (entity bookEntity) GetRecommendBooks(skip, limit int64, categoryIds []stri
 		{"$sort": bson.M{"categoryMatch": -1}},
 		{"$skip": skip},
 		{"$limit": limit},
+		{"$sort":bson.M{"createAt": -1} },
 	}
 
 
@@ -246,6 +248,7 @@ func (entity bookEntity) GetHighRatedBooks(skip, limit int64) ([]form.BookRespon
 		{"$skip": skip},
 		{"$limit": limit},
 		{"$project": bson.M{"_id": bson.M{"$toObjectId": "$_id"},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
+		{"$sort":bson.M{"createAt": -1} },
 	}
 
 	cursor, err := entity.repo.Aggregate(ctx, pipeline)
@@ -287,6 +290,7 @@ func (entity bookEntity) GetPopularBooks(skip, limit int64) ([]form.BookResponse
 		{"$skip": skip},
 		{"$limit": limit},
 		{"$project": bson.M{"_id": bson.M{"$toObjectId": "$_id"},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
+		{"$sort":bson.M{"createAt": -1} },
 	}
 
 	cursor, err := entity.repo.Aggregate(ctx, pipeline)
@@ -332,6 +336,7 @@ func (entity bookEntity) GetSimilarBooks(skip, limit int64,id string) ([]form.Bo
 		{"$sort": bson.M{"authorMatch": -1}},
 		{"$skip": skip},
 		{"$limit": limit},
+		{"$sort":bson.M{"createAt": -1} },
 	}
 
 
