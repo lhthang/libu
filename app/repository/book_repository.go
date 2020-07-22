@@ -248,7 +248,6 @@ func (entity bookEntity) GetHighRatedBooks(skip, limit int64) ([]form.BookRespon
 		{"$skip": skip},
 		{"$limit": limit},
 		{"$project": bson.M{"_id": bson.M{"$toObjectId": "$_id"},"title":1,"description":1,"publisher":1,"releaseAt":1,"createAt":1,"authorIds":1,"categoryIds":1,"link":1,"image":1}},
-		{"$sort":bson.M{"createAt": -1} },
 	}
 
 	cursor, err := entity.repo.Aggregate(ctx, pipeline)
