@@ -785,7 +785,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/string'
       security:
       - ApiKeyAuth: []
       summary: Upload file
