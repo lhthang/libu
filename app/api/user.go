@@ -143,7 +143,6 @@ func getUserById(userEntity repository.IUser) func(ctx *gin.Context) {
 // @Description Get user by Username
 // @Accept  json
 // @Produce  json
-// @Security ApiKeyAuth
 // @Param username path string true "Username"
 // @Success 200 {object} form.UserResponse
 // @Router /users/get-username/{username} [get]

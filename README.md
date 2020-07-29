@@ -25,3 +25,9 @@ Rest API with Golang, MongoDB
 
 # Swagger
 * `localhost:8585/swagger/index.html`
+
+# Related Apps
+* This is backend app
+* For front-end app. Please visit at
+  - [Admin-website](https://github.com/tligodsp/minerva-reader-admin)
+  - [Desk-app](https://github.com/tligodsp/minerva-reader)
